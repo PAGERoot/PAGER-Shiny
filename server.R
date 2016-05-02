@@ -43,10 +43,15 @@ shinyServer(
         #readDirectoryInput(session, 'directory') # this is a specific function to load the directory
         pathData <- paste0(input$dirPath, "/")
         
-        if (is.null(pathData) | is.null(inGene)) return(NULL)
+        if (is.null(pathData)) return(NULL)
         
+        if(is.null(inGene)){
+          gene <<- NULL
+        }else{
+          gene <<- read.table(inGene$datapath, header = T)   
+        }
         # Attach the gene informations
-        gene <<- read.table(inGene$datapath, header = T) 
+        
         
         message(pathData)
         
@@ -168,10 +173,11 @@ shinyServer(
       diag(prop.table(ct, 1))
       sum(diag(prop.table(ct)))
       
-      gene <- read.csv("~/Desktop/GeneExpression.txt", sep="\t")
-      prediction <- predict(fit, newdata=gene[,-1])$class
-      gene <<- cbind(gene, prediction)
-      
+      #gene <- read.csv("~/Desktop/GeneExpression.txt", sep="\t")
+      if(!is.null(gene)){
+        prediction <- predict(fit, newdata=gene[,-1])$class
+        gene <<- cbind(gene, prediction)
+      }
       
       
       rs <- cbind(rs, fit.p$x)
@@ -196,7 +202,6 @@ shinyServer(
       incProgress(1/4, detail = "Updating the UI")
       
       reps <- na.omit(unique(factor(reporter$line)))
-      gens <- na.omit(factor(unique(gene$Gene_ID)))
       reps <- na.omit(unique(factor(rs$line)))
       
       # Genotype list
@@ -208,9 +213,12 @@ shinyServer(
       updateSelectInput(session, "to_plot", choices = s_options, selected=s_options[2])  
       
       # Genes
-      g_options <- list()
-      for(g in gens) g_options[[g]] <- g
-      updateSelectInput(session, "ref_genes", choices = g_options)        
+      if(!is.null(gene)) {
+        gens <- na.omit(factor(unique(gene$Gene_ID)))
+        g_options <- list()
+        for(g in gens) g_options[[g]] <- g
+        updateSelectInput(session, "ref_genes", choices = g_options)        
+      }
       
 
       })
@@ -263,7 +271,7 @@ shinyServer(
       
     observe({
       
-      if(input$runROOTEXP == 0){return()}
+      if(input$runROOTEXP == 0 | is.null(gene)){return()}
       rs.agg <- ddply(rs.melt, .(line, variable), summarize, value=mean(value))
       
   # Make the Root Map for the gene

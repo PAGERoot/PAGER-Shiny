@@ -67,7 +67,7 @@ shinyUI(fluidPage(
                           tags$hr(),
                           imageOutput("root_2", width = "100px")),
                         column(1,
-                               h5("  "),
+                               h5("scale"),
                                tags$hr(),
                                plotOutput("scalePlot")),
                         column(2,
