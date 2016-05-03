@@ -6,7 +6,7 @@
 ###### Load libraries
 ##################################################################
 
-packages <- c("ggplot2", "plyr", "gridExtra", "XML", "MASS", "reshape2", "RColorBrewer", "rsvg", "readxl", "png", "lattice", "plotly")
+packages <- c("ggplot2", "plyr", "gridExtra", "XML", "MASS", "reshape2", "RColorBrewer", "rsvg", "readxl", "png", "lattice")
 for(p in packages){
   if (!require(p,character.only = TRUE)){
     install.packages(p, dep=TRUE)

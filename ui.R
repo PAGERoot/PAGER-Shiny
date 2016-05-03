@@ -92,7 +92,7 @@ shinyUI(fluidPage(
                                  tabPanel("LDA plot",
                                           
                                     
-                                          plotlyOutput("ldaPlot"),
+                                          plotOutput("ldaPlot"),
                                           tags$hr(),                       
                                           helpText("Graphical representation of the two first dimentions on the 
                                                   Linear Discriminant Analysis done on the reporter lines dataset.
@@ -104,9 +104,7 @@ shinyUI(fluidPage(
                                           
                                           plotOutput("barplot_comp"),
                                           tags$hr(),                       
-                                          helpText("Graphical representation of the two first dimentions on the 
-                                                   Linear Discriminant Analysis done on the reporter lines dataset.
-                                                   The plotted lines are shown in color, while the other lines are displayed in grey"),
+                                          helpText("Normalized level of fluorescence fopr the different cell layers"),
                                           value=1
                                           ),
                                  tabPanel("MAOV results",
@@ -201,7 +199,7 @@ shinyUI(fluidPage(
               tabPanel("Reporter lines comparisons",
                        fluidRow(
                          column(5,
-                           plotlyOutput("heatmap", width = "100%"),
+                           plotOutput("heatmap", width = "100%"),
                            tags$hr(),                       
                            helpText("Heatmap of the MANOVA results between the different lines. 
                                     For each line combinaison, a MANOVA analysis was performed in order to determine if there

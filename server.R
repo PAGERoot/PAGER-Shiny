@@ -543,10 +543,9 @@ shinyServer(
         xlab("") + ylab("") + 
         coord_fixed()
       
-      p <- ggplotly(plot1)
-      p 
+      plot1
     }
-    output$heatmap <- renderPlotly({
+    output$heatmap <- renderPlot({
       print(heatmap())
     })   
  
@@ -689,11 +688,10 @@ shinyServer(
                           name="Lines",
                           labels=c(input$to_plot, input$ref_reps)) +
         stat_ellipse(level = 0.6)
-      p <- ggplotly(plot2)
-      p
+      plot2
     }
     
-    output$ldaPlot <- renderPlotly({
+    output$ldaPlot <- renderPlot({
       if(input$runROOTEXP == 0){return()}
       print(ldaPlot())
     })
