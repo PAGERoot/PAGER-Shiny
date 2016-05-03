@@ -26,7 +26,7 @@ shinyUI(fluidPage(
       
       fileInput('gene_file', 'Choose gene expression data File', accept=c('text/tab-separated-values', '.txt')),
 
-      checkboxInput('use_example', "Use example files", value = FALSE, width = NULL),
+      checkboxInput('use_example', "Use example data", value = FALSE, width = NULL),
 
       actionButton(inputId = "load_data", label="Load and analyse data"),
       

@@ -77,7 +77,9 @@ shiny::runGitHub("PAGERoot/PAGER-Shiny", "PAGERoot")
 
 ## Using PAGE-Root
 
-PAGE-Root requires two types of input from the users: 
+### Without your own dataset
 
-- Fluorescence data from reporter lines
-- Gene expression data
+- check `Use example data`
+- click `Load and analyse data`
+- wait for the loading to be over
+- click `Plot data`
