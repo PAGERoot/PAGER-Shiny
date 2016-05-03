@@ -6,6 +6,7 @@
 
 library(shiny)
 
+gene <<- NULL
 
 
 shinyServer(
@@ -37,9 +38,12 @@ shinyServer(
 
         incProgress(1/4, detail = "Loading the data")
         
+
         if(input$use_example){ # Use the exmple dataset
           gene <<- read.table("www/GeneExpression.txt", header = T)   
-          rs <<- read.csv("www/reporter-data.csv", header = T)   
+          rs <<- read.csv("www/reporter-data.csv", header = T) 
+          message(str(gene))
+          message("-----------------")
         }else{
           # Load two datafiles
           inGene <- input$gene_file
@@ -48,10 +52,7 @@ shinyServer(
           inReporter <- input$rep_file
           
           if (is.null(inReporter)) return(NULL)
-          
-          if(is.null(inGene)){
-            gene <<- NULL
-          }else{
+          if(!is.null(inGene)){
             gene <<- read.table(inGene$datapath, header = T)   
           }
           # Attach the gene informations
@@ -177,7 +178,9 @@ shinyServer(
       sum(diag(prop.table(ct)))
       
       #gene <- read.csv("~/Desktop/GeneExpression.txt", sep="\t")
+      message(str(gene))
       if(!is.null(gene)){
+        message("---- Prediction")
         prediction <- predict(fit, newdata=gene[,-1])$class
         gene <<- cbind(gene, prediction)
       }
@@ -186,8 +189,6 @@ shinyServer(
       rs <- cbind(rs, fit.p$x)
       
 
-      
-      
       lda.fit <<- fit
       rs <<- rs
       rs.melt <<- rs.melt
