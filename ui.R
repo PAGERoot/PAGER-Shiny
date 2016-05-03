@@ -2,7 +2,7 @@
 
 
 library(shiny)
-library(shinyFiles)
+# library(shinyFiles)
 
 shinyUI(fluidPage(
   
@@ -17,8 +17,10 @@ shinyUI(fluidPage(
       tags$hr(),      
       
       
-      textInput('dirPath', "Select folder containing the reporter xlsx files", placeholder = "Select folder"),
-      shinyDirButton('directory', 'Select folder', 'Please select a folder'),
+      #textInput('dirPath', "Select folder containing the reporter xlsx files", placeholder = "Select folder"),
+      #shinyDirButton('directory', 'Select folder', 'Please select a folder'),
+      
+      fileInput('rep_file', 'Choose reporter expression data File', accept=c('text/tab-separated-values', 'csv')),
       
       tags$hr(), 
       
