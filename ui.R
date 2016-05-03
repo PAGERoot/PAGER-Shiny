@@ -21,15 +21,18 @@ shinyUI(fluidPage(
       #shinyDirButton('directory', 'Select folder', 'Please select a folder'),
       
       fileInput('rep_file', 'Choose reporter expression data File', accept=c('text/tab-separated-values', 'csv')),
-      
+
       tags$hr(), 
       
       fileInput('gene_file', 'Choose gene expression data File', accept=c('text/tab-separated-values', '.txt')),
-      
+
+      checkboxInput('use_example', "Use example files", value = FALSE, width = NULL),
+
       actionButton(inputId = "load_data", label="Load and analyse data"),
       
       tags$hr(),      
 
+      
       
       h3("2. Plot your data"),
       tags$hr(),      

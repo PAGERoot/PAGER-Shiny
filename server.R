@@ -22,7 +22,6 @@ shinyServer(
 #       updateTextInput(session, "dirPath", value = dir_label)
 #     })
     
-    
         
     observe({
             
@@ -38,42 +37,46 @@ shinyServer(
 
         incProgress(1/4, detail = "Loading the data")
         
-        # Load two datafiles
-        inGene <- input$gene_file
-        #readDirectoryInput(session, 'directory') # this is a specific function to load the directory
-        # pathData <- paste0(input$dirPath, "/")
-        inReporter <- input$rep_file
-        
-        if (is.null(inReporter)) return(NULL)
-        
-        if(is.null(inGene)){
-          gene <<- NULL
+        if(input$use_example){ # Use the exmple dataset
+          gene <<- read.table("www/GeneExpression.txt", header = T)   
+          rs <<- read.csv("www/reporter-data.csv", header = T)   
         }else{
-          gene <<- read.table(inGene$datapath, header = T)   
+          # Load two datafiles
+          inGene <- input$gene_file
+          #readDirectoryInput(session, 'directory') # this is a specific function to load the directory
+          # pathData <- paste0(input$dirPath, "/")
+          inReporter <- input$rep_file
+          
+          if (is.null(inReporter)) return(NULL)
+          
+          if(is.null(inGene)){
+            gene <<- NULL
+          }else{
+            gene <<- read.table(inGene$datapath, header = T)   
+          }
+          # Attach the gene informations
+          
+  #         # Attach the reporter informations
+  #         list.f <- list.files(pathData)
+  #         rs <- NULL
+  #         for(f in list.f){
+  #           name <- gsub(".xlsx", "", f)
+  #           for(i in 1:20){
+  #             tryCatch({
+  #               temp <- read_excel(paste0(pathData, f), sheet = i)
+  #               temp <- temp[!is.na(temp[,1]),]
+  #               # Normalize the fluorescence data
+  #               fluo <- scale(temp[["Average flourescence"]])
+  #               rs <- rbind(rs, data.frame(line=name, root=i, cell_type=temp$Label, value=fluo))
+  #             },warning = function(w) {
+  #             }, error = function(e) {
+  #             })
+  #           }
+  #         }
+  #         remove(temp, i, f, list.f, name)
+  #                 
+          rs <<- read.csv(inReporter$datapath, header = T)   
         }
-        # Attach the gene informations
-        
-#         # Attach the reporter informations
-#         list.f <- list.files(pathData)
-#         rs <- NULL
-#         for(f in list.f){
-#           name <- gsub(".xlsx", "", f)
-#           for(i in 1:20){
-#             tryCatch({
-#               temp <- read_excel(paste0(pathData, f), sheet = i)
-#               temp <- temp[!is.na(temp[,1]),]
-#               # Normalize the fluorescence data
-#               fluo <- scale(temp[["Average flourescence"]])
-#               rs <- rbind(rs, data.frame(line=name, root=i, cell_type=temp$Label, value=fluo))
-#             },warning = function(w) {
-#             }, error = function(e) {
-#             })
-#           }
-#         }
-#         remove(temp, i, f, list.f, name)
-#                 
-        rs <<- read.csv(inReporter$datapath, header = T)   
-
         # Average the data by line, root, cell type
         mean_data <- ddply(rs, .(line, root, cell_type), summarise, value=mean(value))
         mean_data <- mean_data[!is.na(mean_data$value),]
