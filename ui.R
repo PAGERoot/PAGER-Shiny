@@ -89,34 +89,32 @@ shinyUI(fluidPage(
                                textOutput("cell_comp"),
                                tags$hr(), 
                                tabsetPanel( 
+                                 
                                  tabPanel("LDA plot",
-                                          
-                                    
-                                          plotOutput("ldaPlot"),
+                                          plotlyOutput("ldaPlot"),
                                           tags$hr(),                       
                                           helpText("Graphical representation of the two first dimentions on the 
                                                   Linear Discriminant Analysis done on the reporter lines dataset.
                                                   The plotted lines are shown in color, while the other lines are displayed in grey"),
                                           value=1
                                  ),
-                                 tabPanel("Barplot",
-                                          
-                                          
+                                 
+                                 tabPanel("Boxplot",
                                           plotOutput("barplot_comp"),
                                           tags$hr(),                       
-                                          helpText("Normalized level of fluorescence fopr the different cell layers"),
+                                          helpText("Normalized level of fluorescence for the different cell layers"),
                                           value=1
                                           ),
+                                 
                                  tabPanel("MAOV results",
-                                          
                                           tags$hr(), 
                                           downloadButton('download_moav', 'Download'),
                                           tags$hr(), 
                                           tableOutput('maov_results'),  
                                           value=2
                                   ),  
+                                 
                                  tabPanel("AOV results",
-                                          
                                           tags$hr(), 
                                           downloadButton('download_oav', 'Download'),
                                           tags$hr(), 
@@ -154,7 +152,7 @@ shinyUI(fluidPage(
                               tags$hr(), 
                               tabsetPanel( 
 
-                                tabPanel("Barplot",
+                                tabPanel("Boxplot",
                                          plotOutput("barplot_comp_1"),
                                          tags$hr(),                       
                                          helpText("Graphical representation of the two first dimentions on the 
@@ -179,41 +177,41 @@ shinyUI(fluidPage(
             ), 
 
             
-            tabPanel("Promoter - Reporter",
-                     helpText("Expression pattern in the root"),
-                     tags$hr(),                                  
-                     flowLayout(
-                       verticalLayout(
-                         h4(textOutput("nameProm")),
-                         tags$hr(),
-                         imageOutput("root_p_2", width = "120px")),
-                       verticalLayout(
-                         h4(textOutput("name_p_Wt")),
-                         tags$hr(),
-                         imageOutput("root_p_1", width = "120px")),
-                       width="100%"
-                     ),
-                     value=3
-            ), 
+            # tabPanel("Promoter - Reporter",
+            #          helpText("Expression pattern in the root"),
+            #          tags$hr(),                                  
+            #          flowLayout(
+            #            verticalLayout(
+            #              h4(textOutput("nameProm")),
+            #              tags$hr(),
+            #              imageOutput("root_p_2", width = "120px")),
+            #            verticalLayout(
+            #              h4(textOutput("name_p_Wt")),
+            #              tags$hr(),
+            #              imageOutput("root_p_1", width = "120px")),
+            #            width="100%"
+            #          ),
+            #          value=3
+            # ), 
 
               tabPanel("Reporter lines comparisons",
-                       fluidRow(
-                         column(5,
+                       # fluidRow(
+                         # column(10,
                            plotOutput("heatmap", width = "100%"),
                            tags$hr(),                       
                            helpText("Heatmap of the MANOVA results between the different lines. 
                                     For each line combinaison, a MANOVA analysis was performed in order to determine if there
                                     expression patterns were different."),
-                           downloadButton('downloadPlotHeat', 'Download Heatmap')                 
-                         ),
-                         column(5,
-                           plotOutput("histoPlot", width = "100%"),
-                           tags$hr(), 
-                           helpText("Distribution of the expression data. Data from each replicate was normalized internally."),
-                           downloadButton('downloadPlot', 'Download Plot')
-                         )
-                       ),                       
-                       value=4
+                           downloadButton('downloadPlotHeat', 'Download Heatmap'),                 
+                         # ),
+                         # column(5,
+                         #   plotOutput("histoPlot", width = "100%"),
+                         #   tags$hr(), 
+                         #   helpText("Distribution of the expression data. Data from each replicate was normalized internally."),
+                         #   downloadButton('downloadPlot', 'Download Plot')
+                         # )
+                       # ),                       
+                       value=3
               ), 
 #              tabPanel("Tissue Expression (detail)",
 #                       helpText("Difference in expression for each tissue"),

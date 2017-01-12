@@ -6,6 +6,8 @@
 
 library(shiny)
 
+options(shiny.maxRequestSize=30*1024^2) 
+
 gene <<- NULL
 
 
@@ -41,7 +43,8 @@ shinyServer(
 
         if(input$use_example){ # Use the exmple dataset
           gene <<- read.table("www/GeneExpression.txt", header = T)   
-          rs <<- read.csv("www/reporter-data.csv", header = T) 
+          # rs <<- read.csv("www/reporter-data-small.csv", header = T)
+          rs <<- read.csv("www/reporter-data.csv", header = T)
           message(str(gene))
           message("-----------------")
         }else{
@@ -79,11 +82,17 @@ shinyServer(
           rs <<- read.csv(inReporter$datapath, header = T)   
         }
         # Average the data by line, root, cell type
+        
         mean_data <- ddply(rs, .(line, root, cell_type), summarise, value=mean(value))
         mean_data <- mean_data[!is.na(mean_data$value),]
         
         # Reshape the data to have them in the proper form for the analysis
         reporter <- dcast(mean_data, line + root ~ cell_type)
+        
+        for(cn in colnames(reporter)){
+          print(cn)
+          reporter[[cn]][is.na(reporter[[cn]])] <- 0
+        }
         
         reporter <<- reporter      
       
@@ -169,6 +178,7 @@ shinyServer(
       
       # Make the LDA analysis on the reporter dataset.
       temp <- rs[,-2]
+      temp$line <- factor(temp$line) # To avoid empty group if they occur
       fit <- lda(line ~ ., data=temp, CV=F)
       
       # Get the accuracy of the prediction
@@ -505,10 +515,15 @@ shinyServer(
       
       if(input$runROOTEXP == 0){return()}
       
-      temp <- rs.agg.short[rs.agg.short$line == input$ref_reps | rs.agg.short$line == input$to_plot,]
+      # temp <- rs.agg.short[rs.agg.short$line == input$ref_reps | rs.agg.short$line == input$to_plot,]
+      temp <- rs.melt[rs.melt$line == input$ref_reps | rs.melt$line == input$to_plot,]
       
-      plot1 <- ggplot(temp, aes(variable, value, fill=line)) + 
-        geom_bar(stat = "identity", position=position_dodge(width=0.9), width=0.8) + 
+      # temp <- rs.melt[rs.melt$line == "AACC_01_AT1G13600" | rs.melt$line == "AACC_02_AT5G23920",]
+      
+      plot1 <- ggplot(temp, aes(variable, value, colour=line)) + 
+        #geom_bar(stat = "identity", position=position_dodge(width=0.9), width=0.8) + 
+        geom_boxplot( width=0.8) + 
+        # geom_jitter(position=position_dodge(width=0.8)) + 
         theme_bw() + 
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
         xlab("") + ylab("Relative expression value")
@@ -527,19 +542,27 @@ shinyServer(
       if(input$runROOTEXP == 0){return()}
       
       temp <- rs.maov
-      temp[temp > 0.05] <- 0.06
-      temp[temp == 0] <- 0.06
+      temp[temp == 0] <- "ns."
+      temp[temp <= 0.01] <- "***"
+      temp[temp <= 0.05 & temp > 0.01] <- "*"
+      temp[temp > 0.05] <- "ns."
+      
  
       dat <- as.data.frame(temp)
       dat$line_1 <- rownames(dat)
       dat <- melt(dat, id.vars = c("line_1"))
+      
       dat$line_2 <- dat$variable
       dat$p_value <- dat$value
       ## Example data
-      plot1 <- ggplot(dat, aes(line_1, line_2, z= p_value)) + geom_tile(aes(fill = p_value)) + 
+      plot1 <- ggplot(dat, aes(line_1, line_2, z= p_value)) + 
+        geom_tile(aes(fill = p_value)) + 
         theme_bw() + 
         theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-        scale_fill_gradient(low="blue", high="white", space="Lab")   +
+        scale_fill_manual(values=c("#00BC4760", "#00BC47", "white"), 
+                            name="Significance level",
+                            labels=c("*","***", "ns.")) +
+        #scale_fill_gradient(low="blue", high="white", space="Lab")   +
         xlab("") + ylab("") + 
         coord_fixed()
       
@@ -676,22 +699,45 @@ shinyServer(
       
       temp <- rs
       temp$col <- 0
+      temp$alpha <- 0.2
+      temp$size <- 1
+      #temp$line <- as.character(temp$line)
       temp$col[temp$line == input$to_plot] <- 1
       temp$col[temp$line == input$ref_reps] <- 2
-      temp$line[temp$line != input$to_plot & temp$line != input$ref_reps] <- " "
+      # temp$col[temp$line == "ABRE_04_AT5G52310"] <- 1
+      # temp$col[temp$line == "AATA_02_AT5G65970"] <- 2
+      temp$alpha[temp$line == input$to_plot] <- 1
+      temp$alpha[temp$line == input$ref_reps] <- 1
+      # temp$size[temp$line == input$to_plot] <- 1.2
+      # temp$size[temp$line == input$ref_reps] <- 1.2
       
-      plot2 <- ggplot(temp[temp$col>0,], aes(LD1, LD2, colour=line)) + 
-        geom_point(data=temp[temp$col==0,], aes(LD1, LD2), colour="grey", size=2) +
-        geom_point(size=4) +
+      # temp$alpha[temp$line == "ABRE_04_AT5G52310"] <- 1
+      # temp$alpha[temp$line == "AATA_02_AT5G65970"] <- 1
+      # temp$size[temp$line == "ABRE_ABI1"] <- 1.2
+      # temp$size[temp$line == "CRE4"] <- 1.2
+      #temp$line[temp$line != "CRE4" & temp$line != "ABRE_ABI1"] <- " "
+      #temp$line <- factor(temp$line)
+      
+      #plot2 <- ggplot(temp[temp$col>0,], aes(LD1, LD2, colour=line, alpha=alpha)) + 
+      #  geom_point(data=temp[temp$col==0,], aes(LD1, LD2, colour=line), size=2) +
+
+      plot2 <- ggplot() + 
+        geom_point(data=temp[temp$col==0,], aes(LD1, LD2, fill=line, alpha=alpha), shape=1) +
+        scale_fill_grey() + 
+        geom_point(data=temp[temp$col>0,], aes(LD1, LD2, colour=line), shape=16) + 
+        stat_ellipse(data=temp[temp$col>0,], aes(LD1, LD2, colour=line), level = 0.6, size=1) + 
         theme_bw() + 
+        theme(legend.position="none") + 
         scale_colour_manual(values=c("#F96F70", "#00BC47"), 
                           name="Lines",
-                          labels=c(input$to_plot, input$ref_reps)) +
-        stat_ellipse(level = 0.6)
-      plot2
+                          labels=c(input$to_plot, input$ref_reps)) 
+        
+      
+      p <- ggplotly(plot2)
+      p
     }
     
-    output$ldaPlot <- renderPlot({
+    output$ldaPlot <- renderPlotly({
       if(input$runROOTEXP == 0){return()}
       print(ldaPlot())
     })
