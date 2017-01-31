@@ -1,0 +1,999 @@
+<?xml version='1.0' encoding='UTF-8'?>
+	<rsml xmlns:po='http://www.plantontology.org/xml-dtd/po.dtd'>
+		<metadata>
+			<version>1</version>
+			<unit>inch</unit>
+			<resolution>300.0</resolution>
+			<last-modified>2017-01-27</last-modified>
+			<software>PAGE-Root</software>
+			<file-key>4cc17ebb7ecb2b1e10e408d9856205cde8636647</file-key>
+			<property-definitions>
+				<property-definition>
+					<label>columella</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+				<property-definition>
+					<label>cortex</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+				<property-definition>
+					<label>endodermis</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+				<property-definition>
+					<label>epidermis</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+				<property-definition>
+					<label>QC</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+				<property-definition>
+					<label>lateralrootcap</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+				<property-definition>
+					<label>stele</label>
+					<type>numeric</type>
+					<unit>-</unit>
+				</property-definition>
+			</property-definitions>
+		</metadata>
+		<scene>
+			<plant id='1' label = 'AACC_01_AT1G13600' >
+				<root id='1-1' label='1' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.25255</value>
+							<value>0.1715</value>
+							<value>0.40352</value>
+							<value>0.41063</value>
+							<value>0.24893</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00607</value>
+							<value>0.0063</value>
+							<value>0.00588</value>
+							<value>0.00319</value>
+							<value>0.0129</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00344</value>
+							<value>0.00447</value>
+							<value>0.00364</value>
+							<value>0.00341</value>
+							<value>0.00321</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.02476</value>
+							<value>0.02734</value>
+							<value>0.02392</value>
+							<value>0.02109</value>
+							<value>0.0272</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.03457</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.36111</value>
+							<value>0.31732</value>
+							<value>0.27467</value>
+							<value>0.20415</value>
+							<value>0.32425</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00295</value>
+							<value>0.00327</value>
+							<value>0.0037</value>
+							<value>0.00356</value>
+							<value>0.00335</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='1-2' label='2' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.06544</value>
+							<value>0.14067</value>
+							<value>0.32525</value>
+							<value>0.1642</value>
+							<value>0.06962</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.02267</value>
+							<value>0.01156</value>
+							<value>0.01162</value>
+							<value>0.02153</value>
+							<value>0.01843</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.0144</value>
+							<value>0.00987</value>
+							<value>0.01392</value>
+							<value>0.00663</value>
+							<value>0.01427</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.04823</value>
+							<value>0.0377</value>
+							<value>0.03455</value>
+							<value>0.03796</value>
+							<value>0.03571</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.06768</value>
+							<value>0.07246</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.32829</value>
+							<value>0.29924</value>
+							<value>0.36312</value>
+							<value>0.39775</value>
+							<value>0.40303</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.01075</value>
+							<value>0.01037</value>
+							<value>0.00659</value>
+							<value>0.00786</value>
+							<value>0.00745</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='1-3' label='3' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.1314</value>
+							<value>0.17464</value>
+							<value>0.51341</value>
+							<value>0.09899</value>
+							<value>0.12568</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00701</value>
+							<value>0.0047</value>
+							<value>0.00777</value>
+							<value>0.00661</value>
+							<value>0.00518</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00305</value>
+							<value>0.00698</value>
+							<value>0.0043</value>
+							<value>0.00565</value>
+							<value>0.0052</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.01963</value>
+							<value>0.01344</value>
+							<value>0.02212</value>
+							<value>0.02362</value>
+							<value>0.01904</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.02474</value>
+							<value>0.01598</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.18652</value>
+							<value>0.14707</value>
+							<value>0.23747</value>
+							<value>0.1998</value>
+							<value>0.18649</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00535</value>
+							<value>0.00472</value>
+							<value>0.00309</value>
+							<value>0.00367</value>
+							<value>0.00374</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='1-4' label='4' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.00729</value>
+							<value>0.00523</value>
+							<value>0.00955</value>
+							<value>0.00887</value>
+							<value>0.00972</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00522</value>
+							<value>0.00479</value>
+							<value>0.00238</value>
+							<value>0.0042</value>
+							<value>0.01138</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.03235</value>
+							<value>0.04116</value>
+							<value>0.03574</value>
+							<value>0.03192</value>
+							<value>0.04946</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.04029</value>
+							<value>0.04003</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.31801</value>
+							<value>0.29364</value>
+							<value>0.36139</value>
+							<value>0.37264</value>
+							<value>0.35393</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.04836</value>
+							<value>0.03233</value>
+							<value>0.07684</value>
+							<value>0.02423</value>
+							<value>0.02495</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='1-5' label='5' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.20073</value>
+							<value>0.17003</value>
+							<value>0.35784</value>
+							<value>0.10381</value>
+							<value>0.15273</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00505</value>
+							<value>0.0051</value>
+							<value>0.00745</value>
+							<value>0.0061</value>
+							<value>0.0092</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00467</value>
+							<value>0.00369</value>
+							<value>0.00683</value>
+							<value>0.00435</value>
+							<value>0.00397</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.03175</value>
+							<value>0.02915</value>
+							<value>0.02677</value>
+							<value>0.02345</value>
+							<value>0.02186</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.02864</value>
+							<value>0.0261</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.26753</value>
+							<value>0.24874</value>
+							<value>0.27874</value>
+							<value>0.2532</value>
+							<value>0.28327</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00372</value>
+							<value>0.00354</value>
+							<value>0.00271</value>
+							<value>0.0026</value>
+							<value>0.00497</value>
+						</annotation>
+					</annotations>
+				</root>
+			</plant>
+			<plant id='2' label = 'AACC_02_AT5G23920' >
+				<root id='2-1' label='1' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.04743</value>
+							<value>0.05175</value>
+							<value>0.05615</value>
+							<value>0.05355</value>
+							<value>0.07135</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.03937</value>
+							<value>0.02487</value>
+							<value>0.03073</value>
+							<value>0.04866</value>
+							<value>0.02471</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.15611</value>
+							<value>0.16805</value>
+							<value>0.15845</value>
+							<value>0.15899</value>
+							<value>0.15625</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.1773</value>
+							<value>0.13566</value>
+							<value>0.12273</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.0315</value>
+							<value>0.02785</value>
+							<value>0.01743</value>
+							<value>0.02904</value>
+							<value>0.01897</value>
+						</annotation>
+						<annotation name='columella'>
+							<value>0.29248</value>
+							<value>0.40195</value>
+							<value>0.33353</value>
+							<value>0.35287</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.51054</value>
+							<value>0.49647</value>
+							<value>0.37597</value>
+							<value>0.48231</value>
+							<value>0.44462</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='2-2' label='2' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.06027</value>
+							<value>0.06488</value>
+							<value>0.0671</value>
+							<value>0.08341</value>
+							<value>0.04401</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.07974</value>
+							<value>0.02892</value>
+							<value>0.04082</value>
+							<value>0.04476</value>
+							<value>0.03448</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.13438</value>
+							<value>0.11953</value>
+							<value>0.13774</value>
+							<value>0.12908</value>
+							<value>0.11832</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.12706</value>
+							<value>0.11785</value>
+							<value>0.1762</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.03167</value>
+							<value>0.0271</value>
+							<value>0.0282</value>
+							<value>0.02282</value>
+							<value>0.03307</value>
+						</annotation>
+						<annotation name='columella'>
+							<value>0.10196</value>
+							<value>0.14479</value>
+							<value>0.2139</value>
+							<value>0.05643</value>
+							<value>0.17466</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.38379</value>
+							<value>0.49611</value>
+							<value>0.41145</value>
+							<value>0.39517</value>
+							<value>0.41183</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='2-3' label='3' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.07979</value>
+							<value>0.07605</value>
+							<value>0.06512</value>
+							<value>0.05921</value>
+							<value>0.07825</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.05271</value>
+							<value>0.04656</value>
+							<value>0.0599</value>
+							<value>0.0572</value>
+							<value>0.05391</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.13897</value>
+							<value>0.13393</value>
+							<value>0.18015</value>
+							<value>0.16356</value>
+							<value>0.14576</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.08172</value>
+							<value>0.08736</value>
+							<value>0.11232</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.04055</value>
+							<value>0.03366</value>
+							<value>0.03035</value>
+							<value>0.03102</value>
+							<value>0.02913</value>
+						</annotation>
+						<annotation name='columella'>
+							<value>0.15167</value>
+							<value>0.08374</value>
+							<value>0.08474</value>
+							<value>0.04469</value>
+							<value>0.06585</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.4699</value>
+							<value>0.45098</value>
+							<value>0.45059</value>
+							<value>0.47056</value>
+							<value>0.48219</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='2-4' label='4' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.08582</value>
+							<value>0.09208</value>
+							<value>0.08729</value>
+							<value>0.10126</value>
+							<value>0.12621</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.07185</value>
+							<value>0.06275</value>
+							<value>0.04459</value>
+							<value>0.08741</value>
+							<value>0.06541</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.19529</value>
+							<value>0.16761</value>
+							<value>0.16487</value>
+							<value>0.18025</value>
+							<value>0.16583</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.18794</value>
+							<value>0.14815</value>
+							<value>0.16548</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.04247</value>
+							<value>0.03921</value>
+							<value>0.05118</value>
+							<value>0.03663</value>
+							<value>0.03944</value>
+						</annotation>
+						<annotation name='columella'>
+							<value>0.10334</value>
+							<value>0.11242</value>
+							<value>0.10362</value>
+							<value>0.0723</value>
+							<value>0.10796</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.50394</value>
+							<value>0.52509</value>
+							<value>0.47711</value>
+							<value>0.49026</value>
+							<value>0.48918</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='2-5' label='5' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.10534</value>
+							<value>0.10951</value>
+							<value>0.12209</value>
+							<value>0.09928</value>
+							<value>0.15</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.06788</value>
+							<value>0.09496</value>
+							<value>0.0875</value>
+							<value>0.09521</value>
+							<value>0.08555</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.21776</value>
+							<value>0.21504</value>
+							<value>0.23686</value>
+							<value>0.17926</value>
+							<value>0.22288</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.17653</value>
+							<value>0.17653</value>
+							<value>0.20296</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.0519</value>
+							<value>0.07053</value>
+							<value>0.06356</value>
+							<value>0.06833</value>
+							<value>0.05603</value>
+						</annotation>
+						<annotation name='columella'>
+							<value>0.20701</value>
+							<value>0.07019</value>
+							<value>0.09091</value>
+							<value>0.17812</value>
+							<value>0.14561</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.54848</value>
+							<value>0.50973</value>
+							<value>0.49478</value>
+							<value>0.50906</value>
+							<value>0.47941</value>
+						</annotation>
+					</annotations>
+				</root>
+			</plant>
+			<plant id='3' label = 'AACC_03_AT1G13600' >
+				<root id='3-1' label='1' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.33306</value>
+							<value>0.80014</value>
+							<value>0.2077</value>
+							<value>0.07029</value>
+							<value>0.12895</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00439</value>
+							<value>0.0051</value>
+							<value>0.00499</value>
+							<value>0.00778</value>
+							<value>0.00602</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00522</value>
+							<value>0.00332</value>
+							<value>0.0039</value>
+							<value>0.0027</value>
+							<value>0.00536</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.01877</value>
+							<value>0.01913</value>
+							<value>0.01708</value>
+							<value>0.02368</value>
+							<value>0.01693</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.02491</value>
+							<value>0.02821</value>
+							<value>0.02556</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.31357</value>
+							<value>0.14511</value>
+							<value>0.24295</value>
+							<value>0.23943</value>
+							<value>0.26599</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00441</value>
+							<value>0.00355</value>
+							<value>0.00405</value>
+							<value>0.00437</value>
+							<value>0.00426</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='3-2' label='2' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.29392</value>
+							<value>0.19694</value>
+							<value>0.3475</value>
+							<value>0.20699</value>
+							<value>0.31078</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00484</value>
+							<value>0.00462</value>
+							<value>0.00297</value>
+							<value>0.0057</value>
+							<value>0.00325</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00477</value>
+							<value>0.00358</value>
+							<value>0.00306</value>
+							<value>0.00185</value>
+							<value>0.00247</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.01771</value>
+							<value>0.01926</value>
+							<value>0.01549</value>
+							<value>0.01564</value>
+							<value>0.01373</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.01787</value>
+							<value>0.02167</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.31756</value>
+							<value>0.25633</value>
+							<value>0.24981</value>
+							<value>0.26279</value>
+							<value>0.29657</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00176</value>
+							<value>0.00341</value>
+							<value>0.00262</value>
+							<value>0.00161</value>
+							<value>0.00226</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='3-3' label='3' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.13376</value>
+							<value>0.33834</value>
+							<value>0.07491</value>
+							<value>0.17719</value>
+							<value>0.29169</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00617</value>
+							<value>0.00227</value>
+							<value>0.00436</value>
+							<value>0.00435</value>
+							<value>0.00311</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00331</value>
+							<value>0.00178</value>
+							<value>0.00184</value>
+							<value>0.00238</value>
+							<value>0.0055</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.01546</value>
+							<value>0.01332</value>
+							<value>0.01806</value>
+							<value>0.00973</value>
+							<value>0.01882</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.02198</value>
+							<value>0.02119</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.3345</value>
+							<value>0.2047</value>
+							<value>0.23852</value>
+							<value>0.36935</value>
+							<value>0.25261</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00354</value>
+							<value>0.00463</value>
+							<value>0.00386</value>
+							<value>0.00407</value>
+							<value>0.00392</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='3-4' label='4' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.19431</value>
+							<value>0.25082</value>
+							<value>0.27434</value>
+							<value>0.15534</value>
+							<value>0.09354</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00489</value>
+							<value>0.00291</value>
+							<value>0.0047</value>
+							<value>0.00857</value>
+							<value>0.00595</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00249</value>
+							<value>0.0044</value>
+							<value>0.00476</value>
+							<value>0.0029</value>
+							<value>0.00202</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.02693</value>
+							<value>0.01158</value>
+							<value>0.02138</value>
+							<value>0.02366</value>
+							<value>0.01908</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.02827</value>
+							<value>0.0289</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.26708</value>
+							<value>0.27751</value>
+							<value>0.184</value>
+							<value>0.24937</value>
+							<value>0.31593</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00242</value>
+							<value>0.00348</value>
+							<value>0.00357</value>
+							<value>0.00225</value>
+							<value>0.00405</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='3-5' label='5' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='columella'>
+							<value>0.23099</value>
+							<value>0.09793</value>
+							<value>0.16711</value>
+							<value>0.1113</value>
+						</annotation>
+						<annotation name='cortex'>
+							<value>0.00343</value>
+							<value>0.00559</value>
+							<value>0.0047</value>
+							<value>0.0063</value>
+							<value>0.00671</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.00339</value>
+							<value>0.00626</value>
+							<value>0.00467</value>
+							<value>0.00409</value>
+							<value>0.00323</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.01866</value>
+							<value>0.02016</value>
+							<value>0.02234</value>
+							<value>0.01974</value>
+							<value>0.01865</value>
+						</annotation>
+						<annotation name='QC'>
+							<value>0.01429</value>
+							<value>0.01951</value>
+						</annotation>
+						<annotation name='lateralrootcap'>
+							<value>0.1854</value>
+							<value>0.18767</value>
+							<value>0.27054</value>
+							<value>0.22955</value>
+							<value>0.22512</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.00432</value>
+							<value>0.00382</value>
+							<value>0.00359</value>
+							<value>0.005</value>
+							<value>0.00417</value>
+						</annotation>
+					</annotations>
+				</root>
+			</plant>
+			<plant id='4' label = 'AACC_04_AT5G23920' >
+				<root id='4-1' label='1' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.04758</value>
+							<value>0.10413</value>
+							<value>0.09789</value>
+							<value>0.14821</value>
+							<value>0.0949</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.61388</value>
+							<value>0.76313</value>
+							<value>0.92785</value>
+							<value>0.74142</value>
+							<value>0.6209</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.0637</value>
+							<value>0.04654</value>
+							<value>0.03783</value>
+							<value>0.05675</value>
+							<value>0.03302</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.48888</value>
+							<value>0.64353</value>
+							<value>0.65939</value>
+							<value>0.4844</value>
+							<value>0.63085</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='4-2' label='2' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.09024</value>
+							<value>0.12033</value>
+							<value>0.05772</value>
+							<value>0.05203</value>
+							<value>0.04797</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.66667</value>
+							<value>0.67496</value>
+							<value>0.79214</value>
+							<value>0.64932</value>
+							<value>0.5477</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.14634</value>
+							<value>0.08238</value>
+							<value>0.05793</value>
+							<value>0.02873</value>
+							<value>0.03211</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.35354</value>
+							<value>0.46382</value>
+							<value>0.22493</value>
+							<value>0.3564</value>
+							<value>0.30102</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='4-3' label='3' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.0508</value>
+							<value>0.06211</value>
+							<value>0.03964</value>
+							<value>0.047</value>
+							<value>0.06369</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.76375</value>
+							<value>0.55507</value>
+							<value>0.44291</value>
+							<value>0.57631</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.0076</value>
+							<value>0.02148</value>
+							<value>0.02658</value>
+							<value>0.0356</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.52285</value>
+							<value>0.22079</value>
+							<value>0.41535</value>
+							<value>0.3371</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='4-4' label='4' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.03722</value>
+							<value>0.04009</value>
+							<value>0.02265</value>
+							<value>0.02373</value>
+							<value>0.06472</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.41873</value>
+							<value>0.36772</value>
+							<value>0.38925</value>
+							<value>0.37465</value>
+							<value>0.72519</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.04018</value>
+							<value>0.0329</value>
+							<value>0.0178</value>
+							<value>0.04072</value>
+							<value>0.03981</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.31621</value>
+							<value>0.30529</value>
+							<value>0.40723</value>
+							<value>0.22618</value>
+							<value>0.37792</value>
+						</annotation>
+					</annotations>
+				</root>
+				<root id='4-5' label='5' po:accession='PO:0009005'>
+					<geometry></geometry>
+					<functions></functions>
+					<annotations>
+						<annotation name='cortex'>
+							<value>0.12048</value>
+							<value>0.0872</value>
+							<value>0.05759</value>
+							<value>0.11437</value>
+							<value>0.0617</value>
+						</annotation>
+						<annotation name='endodermis'>
+							<value>0.70913</value>
+							<value>0.70564</value>
+							<value>0.65724</value>
+							<value>0.68671</value>
+						</annotation>
+						<annotation name='epidermis'>
+							<value>0.00713</value>
+							<value>0.02291</value>
+							<value>0.01486</value>
+							<value>0.00821</value>
+							<value>0.00357</value>
+						</annotation>
+						<annotation name='stele'>
+							<value>0.52235</value>
+							<value>0.47839</value>
+							<value>0.55732</value>
+							<value>0.5872</value>
+						</annotation>
+					</annotations>
+				</root>
+			</plant>
+		</scene>
+	</rsml>

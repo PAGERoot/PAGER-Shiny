@@ -1,4 +1,28 @@
-# Guillaume Lobet - University of Liege
+#
+# Copyright © 2017, Université catholique de Louvain
+# All rights reserved.
+# 
+# Copyright © 2017 Forschungszentrum Jülich GmbH
+# All rights reserved.
+# 
+# Developers: Guillaume Lobet
+# 
+# Redistribution and use in source and binary forms, with or without modification, are permitted under the GNU General Public License v3 and provided that the following conditions are met:
+#   
+# 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+# 
+# 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+# 
+# 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+# 
+# Disclaimer
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+# 
+# You should have received the GNU GENERAL PUBLIC LICENSE v3 with this file in license.txt but can also be found at http://www.gnu.org/licenses/gpl-3.0.en.html
+# 
+# NOTE: The GPL.v3 license requires that all derivative work is distributed under the same license. That means that if you use this source code in any other program, you can only distribute that program with the full source code included and licensed under a GPL license.
+
 
 
 library(shiny)
@@ -7,227 +31,214 @@ library(shiny)
 shinyUI(fluidPage(
   
   # Application title
-  titlePanel(h1("--| PAGE-Root |--")),
+  titlePanel("PAGE-Root"),
   
   fluidRow(
-    column(3, wellPanel(
-      helpText("PAGE-Root (Pattern Analysis of Gene Expression in Root) is a pipeline designed to analyse and visualize gene and reporter expression patterns in root."),
-
+    column(3, 
       h3("1. Load your data"),
-      tags$hr(),      
-      
-      
-      #textInput('dirPath', "Select folder containing the reporter xlsx files", placeholder = "Select folder"),
-      #shinyDirButton('directory', 'Select folder', 'Please select a folder'),
-      
-      fileInput('rep_file', 'Choose reporter expression data File', accept=c('text/tab-separated-values', 'csv')),
-
-      tags$hr(), 
-      
-      fileInput('gene_file', 'Choose gene expression data File', accept=c('text/tab-separated-values', '.txt')),
-
-      checkboxInput('use_example', "Use example data", value = FALSE, width = NULL),
-
-      actionButton(inputId = "load_data", label="Load and analyse data"),
-      
-      tags$hr(),      
-
-      
-      
-      h3("2. Plot your data"),
-      tags$hr(),      
-
-      selectInput("ref_reps", label = "Reference genotype", choices = c("Please load datafile")), # updated with the datafile
-      selectInput("to_plot", label = "Genotype to compare", choices = c("Please load datafile"), selected = 2), # updated with the datafile
-      
-      tags$hr(),      
-      
-      selectInput("ref_genes", label = "Promoter to analyse", choices = c("Please load datafile")), # updated with the datafile
-      
-      # tags$hr(),      
-      helpText("Wait for the data loading and analysis to be done before hitting the plot button. 
-               It will close the application if you do so. 
-               The analysis is done when you can see the different line name in the dropdown menu above."),
-      
-      actionButton(inputId = "runROOTEXP", label="Plot data")
-      
-      )),  
+      wellPanel(
+        fileInput('rep_file', 'Choose reporter expression data File', accept=c('text', '.rsml')),
+        fileInput('gene_file', 'Choose gene expression data File', accept=c('text/tab-separated-values', '.txt'))
+        # checkboxInput('use_example', "Use example data", value = FALSE, width = NULL)
+      ),
+      h3("2. Choose the options"),
+      wellPanel(
+        checkboxInput('use_absolute', "These are absolute values", value = FALSE, width = NULL),
+        selectInput("type_to_analyse", label="Cell types to use in the MANOVA", choices = c("Please load datafile"), selected = NULL, multiple = TRUE),
+        selectInput("method", label = "Method used for the analysis", choices = c("Mean", "Median", "Min", "Max")), # updated with the datafile
+        helpText("Define which method to use to aggregate the data at the line x root x cell type level"),
+        actionButton(inputId = "load_data", label=" Launch PAGE-Root", icon("paper-plane"))
+     )
+    ),  
     
     
+#------------------------------------------------------------------
+#------------------------------------------------------------------
     
     # Show a plot of the generated distribution
     column(9,
            tabsetPanel( 
-             tabPanel("Reporter - Reporter",
-                      
-                      helpText("Expression pattern in the root"),
+             tabPanel("Compare reporters expressions",
                       tags$hr(),                                  
                       fluidRow(
-                        column(2,
-                          h5(textOutput("nameWt")),
-                          tags$hr(),
-                          imageOutput("root_1", width = "100px")),
-                        column(2,
-                          h5(textOutput("nameMt")),
-                          tags$hr(),
-                          imageOutput("root_2", width = "100px")),
-                        column(1,
-                               h5("scale"),
-                               tags$hr(),
-                               plotOutput("scalePlot")),
-                        column(2,
-                          h5(textOutput("nameDiff")),
-                          tags$hr(),
-                          imageOutput("root_diff", width = "100px")),
-
-                        column(5,
-                               tags$hr(),                       
+                        
+                        column(6,
+                               fluidRow(
+                                 column(5,
+                                        selectInput("ref_reps", label = NULL, choices = c("Please load datafile"))
+                                        ),
+                                 column(5,
+                                        selectInput("to_plot", label = NULL, choices = c("Please load datafile"), selected = 2)
+                                 ),
+                                 column(2,
+                                        checkboxInput('show_diff', "", value = FALSE, width = NULL)
+                                 )
+                               ),
+                               plotOutput("plotRoot", height="800px", width="100%")
+                        ),
+                        column(6,
+                               h4("Overall difference between the selected reporter lines"),
+                               helpText("Results from the MANOVA analysis, revealing if there is a global differences between both lines"),
                                textOutput("line_comp_text"),
                                textOutput("line_comp_pval"),
-                               tags$hr(),                       
-                               h5("Different cell types:"),
+                               tags$hr(),
+                               h4("Single differences between the root types of the selected reporter lines"),
+                               helpText("It should be noted, that even if two lines are not globally different, they might have local, single cell-type differences."),
                                textOutput("cell_comp"),
-                               tags$hr(), 
-                               tabsetPanel( 
-                                 
-                                 tabPanel("LDA plot",
-                                          plotlyOutput("ldaPlot"),
-                                          tags$hr(),                       
-                                          helpText("Graphical representation of the two first dimentions on the 
-                                                  Linear Discriminant Analysis done on the reporter lines dataset.
-                                                  The plotted lines are shown in color, while the other lines are displayed in grey"),
-                                          value=1
-                                 ),
-                                 
+                               tags$hr(),
+                               tabsetPanel(
                                  tabPanel("Boxplot",
                                           plotOutput("barplot_comp"),
-                                          tags$hr(),                       
+                                          tags$hr(),
                                           helpText("Normalized level of fluorescence for the different cell layers"),
                                           value=1
                                           ),
-                                 
+
                                  tabPanel("MAOV results",
-                                          tags$hr(), 
-                                          downloadButton('download_moav', 'Download'),
-                                          tags$hr(), 
-                                          tableOutput('maov_results'),  
+                                          tags$hr(),
+                                          helpText("This table contains all the comparison between the different reporter lines, using MANOVA analyses"),
+                                          downloadButton('download_moav', 'Download table'),
+                                          tags$hr(),
+                                          tableOutput('maov_results'),
                                           value=2
-                                  ),  
-                                 
+                                  ),
+
                                  tabPanel("AOV results",
-                                          tags$hr(), 
-                                          downloadButton('download_oav', 'Download'),
-                                          tags$hr(), 
-                                          tableOutput('aov_results'),  
-                                          value=2 
-                                 )  
+                                          tags$hr(),
+                                          helpText("This table contains all the comparison between the different reporter lines, for each cell type, using 2-way ANOVA analyses"),
+                                          downloadButton('download_oav', 'Download table'),
+                                          tags$hr(),
+                                          tableOutput('aov_results'),
+                                          value=2
+                                 ),
+                                 
+                                 tabPanel("PCA plot",
+                                          plotlyOutput("ldaPlot"),
+                                          tags$hr(),
+                                          helpText("Graphical representation of the two first dimentions on the
+                                                  Linear Discriminant Analysis done on the reporter lines dataset.
+                                                  The plotted lines are shown in color, while the other lines are displayed in grey"),
+                                          value=1
+                                 ),                                 
+                                 
+                                 tabPanel("MOAV Summary",
+                                          plotOutput("heatmap", width = "100%", height="600px"),
+                                          tags$hr(),
+                                          helpText("Heatmap of the MANOVA results between the different lines.
+                                    For each line combinaison, a MANOVA analysis was performed in order to determine if there
+                                    expression patterns were different.")         
                                 )
-                        ),
-                        width="100%",
-                        height="100%"
+                              )
+                        )
                       ),
                       value=1
              ),              
 
-            tabPanel("Reporter - Gene",
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+             
+            tabPanel("Match Reporter to Gene",
                      helpText("Expression pattern in the root"),
-                     tags$hr(),    
+                     tags$hr(),
                      fluidRow(
-                       column(2,
-                              h5(textOutput("name_gene_1")),
-                              tags$hr(),
-                              imageOutput("root_gene_1", width = "100px")),
-                       column(2,
-                              h5(textOutput("name_pred_1")),
-                              tags$hr(),
-                              imageOutput("root_pred_1", width = "100px")),
-                       column(1,
-                              h5("  "),
-                              tags$hr(),
-                              plotOutput("scalePlot2")),
-                       column(5,
-                              tags$hr(),                       
-                              tags$hr(),                       
+                       column(6,
+                          fluidRow(
+                            column(5,
+                                   selectInput("ref_reps_2", label = "Reporter", choices = c("Please load datafile"))
+                            )
+                          ),
+                          plotOutput("plotRootGene", height="800px", width="100%")
+                       ),
+                       column(6,
+                        tabsetPanel(
 
-                              tags$hr(), 
-                              tabsetPanel( 
-
-                                tabPanel("Boxplot",
-                                         plotOutput("barplot_comp_1"),
-                                         tags$hr(),                       
-                                         helpText("Graphical representation of the two first dimentions on the 
-                                                  Linear Discriminant Analysis done on the reporter lines dataset.
-                                                  The plotted lines are shown in color, while the other lines are displayed in grey"),
-                                         value=1
-                                         ),
-                                 tabPanel("Comparison results",
-                                         
-                                         tags$hr(), 
-                                         downloadButton('download_comp', 'Download'),
-                                         tags$hr(), 
-                                         tableOutput('comp_results'),  
-                                         value=2 
-                                  )  
-                                )
-                              ),
+                          tabPanel("Boxplot",
+                                   plotOutput("barplot_comp_1"),
+                                   tags$hr(),
+                                   helpText("Graphical representation of the two first dimentions on the
+                                            Linear Discriminant Analysis done on the reporter lines dataset.
+                                            The plotted lines are shown in color, while the other lines are displayed in grey"),
+                                   value=1
+                                   ),
+                          tabPanel("Heatmap of distances",
+                                   plotOutput("heatmap_dist", height="600px", width="100%"),
+                                   tags$hr(),
+                                   helpText("Heat map of the distances between the different reporter lines and the different gene experessio datasets"),
+                                   value=1
+                          )                          
+                          )
+                        ),
                        width="100%",
                        height="100%"
                        ),
                      value=2
-            ), 
+            ),
 
-            
-            # tabPanel("Promoter - Reporter",
-            #          helpText("Expression pattern in the root"),
-            #          tags$hr(),                                  
-            #          flowLayout(
-            #            verticalLayout(
-            #              h4(textOutput("nameProm")),
-            #              tags$hr(),
-            #              imageOutput("root_p_2", width = "120px")),
-            #            verticalLayout(
-            #              h4(textOutput("name_p_Wt")),
-            #              tags$hr(),
-            #              imageOutput("root_p_1", width = "120px")),
-            #            width="100%"
-            #          ),
-            #          value=3
-            # ), 
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
-              tabPanel("Reporter lines comparisons",
-                       # fluidRow(
-                         # column(10,
-                           plotOutput("heatmap", width = "100%"),
-                           tags$hr(),                       
-                           helpText("Heatmap of the MANOVA results between the different lines. 
-                                    For each line combinaison, a MANOVA analysis was performed in order to determine if there
-                                    expression patterns were different."),
-                           downloadButton('downloadPlotHeat', 'Download Heatmap'),                 
-                         # ),
-                         # column(5,
-                         #   plotOutput("histoPlot", width = "100%"),
-                         #   tags$hr(), 
-                         #   helpText("Distribution of the expression data. Data from each replicate was normalized internally."),
-                         #   downloadButton('downloadPlot', 'Download Plot')
-                         # )
-                       # ),                       
-                       value=3
-              ), 
-#              tabPanel("Tissue Expression (detail)",
-#                       helpText("Difference in expression for each tissue"),
-#                       downloadButton('downloadPlot1', 'Download Plot1'),                 
-#                       tags$hr(),                       
-#                       plotOutput("diffPlot", width = "100%"),
-#                       value=1
-#              ),             
-#              
-#              tabPanel("Distribution of expression levels",
-#                       helpText("Distribution of the expression data. Normalized in the right panel"),
-#                       downloadButton('downloadPlot', 'Download Plot'),                 
-#                       tags$hr(),                       
-#                       plotOutput("histoPlot", width = "100%"),
-#                       value=5
-#              ),
+              tabPanel("Dowload processed data",
+                  tags$hr(),
+                  tabsetPanel(
+                     
+                     tabPanel("MAOV results",
+                              helpText("This table contains all the comparison between the different reporter lines, using MANOVA analyses"),
+                              downloadButton('download_moav_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('maov_results_all'),
+                              value=2
+                     ),
+                     
+                     tabPanel("AOV results",
+                              helpText("This table contains all the comparison between the different reporter lines, for each cell type, using 2-way ANOVA analyses"),
+                              downloadButton('download_oav_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('aov_results_all'),
+                              value=2
+                     ),
+                     
+                     tabPanel("Gene results",
+                              helpText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
+                              downloadButton('download_gene_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('gene_results_all'),
+                              value=2
+                     ),
+                     
+                     tabPanel("Comparison results",
+                              helpText("The matching between a reporter line and a gene is computed based on the euclidean distance between both datasets. The matching gene is
+                                       defined as the one with the shortest euclidean distance from the reporter. The distance is computed as D=√∑(x-xi)2"),
+                              downloadButton('download_comp', 'Download'),
+                              tags$hr(),
+                              tableOutput('comp_results'),
+                              value=2
+                     )                     
+                   ),                       
+                   value=3
+              ),
+
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
+              tabPanel("About",
+                  tags$hr(),
+                   fluidRow(
+                     column(4,
+                            h3("Cell types legend"),
+                            plotOutput("plotRootKey", height="800px", width="100%")
+                     ),
+                     column(4,
+                        h3("What is PAGE-Root?"),
+                        helpText("PAGE-Root (Pattern Analysis of Gene Expression in Root) is a pipeline designed to analyse and visualize gene and reporter expression patterns in root.")
+                     ),
+                     column(4,
+                        h3("DISCLAIMER"),
+                        helpText("THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.")
+                     )
+                   ),
+                   value=4
+              ),
              
    
              
