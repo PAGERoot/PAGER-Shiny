@@ -46,7 +46,7 @@ plotRootKey <- function(root){
       axis.title.y = element_blank(),
       plot.title = element_text(hjust = 0.5, size=18, face="bold"),
       #legend.position = "none",
-      legend.text = element_text(size=18,),
+      legend.text = element_text(size=18),
       legend.title = element_text(size=20),
       panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
       plot.background = element_rect(fill = "transparent",colour = NA)) 
@@ -122,11 +122,13 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   
   
   plot1 <- pl + geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
-    scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) + 
     ggtitle(paste0(reps, "\n n = ",n1))
   
   plot2 <- pl + geom_raster(data = root2, aes(y, -x, fill = value), interpolate = T) + 
-    scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) +     
     ggtitle(paste0(to_plot, "\n n = ",n2)) 
   
   if(show){
@@ -197,11 +199,13 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
   
   
   plot1 <- pl + geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
-    scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) +     
     ggtitle(name)
   
   plot2 <- pl + geom_raster(data = root2, aes(y, -x, fill = value), interpolate = T) + 
-    scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
+    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) +     
     ggtitle(match) 
   
   plot <- grid.arrange(plot1, plot2, ncol=2)

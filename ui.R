@@ -47,7 +47,8 @@ shinyUI(fluidPage(
         selectInput("type_to_analyse", label="Cell types to use in the MANOVA", choices = c("Please load datafile"), selected = NULL, multiple = TRUE),
         selectInput("method", label = "Method used for the analysis", choices = c("Mean", "Median", "Min", "Max")), # updated with the datafile
         helpText("Define which method to use to aggregate the data at the line x root x cell type level"),
-        actionButton(inputId = "load_data", label=" Launch PAGE-Root", icon("paper-plane"))
+        actionButton(inputId = "load_data", label=" Launch PAGE-Root", icon("paper-plane"), 
+                     style="color: #fff; background-color: #337ab7; border-color: #2e6da4")
      )
     ),  
     

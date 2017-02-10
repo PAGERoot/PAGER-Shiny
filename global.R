@@ -28,8 +28,8 @@
 ###### Load libraries
 ##################################################################
 
-packages <- c("ggplot2", "plyr", "gridExtra", "XML", "MASS", 
-              "reshape2", "RColorBrewer", "rsvg", "readxl", "png", 
+packages <- c("ggplot2", "plyr", "gridExtra", "MASS", 
+              "reshape2", "RColorBrewer", "readxl", 
               "lattice", "plotly", "gridExtra", "xml2")
 for(p in packages){
   if (!require(p,character.only = TRUE)){
