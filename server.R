@@ -56,10 +56,27 @@ shinyServer(
                          gene.list = NULL,
                          rep.agg.short = NULL,
                          gene.dist = NULL,
-                         root = root)
+                         root = root,
+                        dts = NULL)
     
     
-        
+    observe({
+      
+      fileName <- 'www/datasets.txt'
+      dts <- read.table(fileName, sep="\t", stringsAsFactors = F, header = T)
+      rs$dts <- dts
+
+      fileName <- 'www/datasets/reporters/'
+      flist <- unique(gsub(".rsml", "", list.files(fileName)))
+      fl <- dts$name[dts$id %in% flist]
+      updateSelectInput(session, "reporters", choices = fl)  
+      
+      fileName <- 'www/datasets/microarrays/'
+      flist <- unique(gsub(".txt", "", list.files(fileName)))
+      fl <- dts$name[dts$id %in% flist]
+      updateSelectInput(session, "microarrays", choices = fl)  
+      
+    })         
     
     
     #------------------------------------------------------
@@ -90,12 +107,19 @@ shinyServer(
           inGene <- input$gene_file
           inReporter <- input$rep_file
           
-          if (is.null(inReporter)) return(NULL)
-          if(!is.null(inGene)){
-            gene <- read.table(inGene$datapath, header = T)   
-          }
-          temp <- read_rsml(inReporter$datapath)   
           
+          if(input$use_example){
+            dat <- rs$dts$id[rs$dts$name == input$microarrays]
+            gene <- read.table(paste0('www/datasets/microarrays/', dat,".txt"), header = T)
+            dat <- rs$dts$id[rs$dts$name == input$reporters]
+            temp <- read_rsml(paste0('www/datasets/reporters/', dat,".rsml"))
+          }else{
+            if (is.null(inReporter)) return(NULL)
+            if(!is.null(inGene)){
+              gene <- read.table(inGene$datapath, header = T)   
+            }
+            temp <- read_rsml(inReporter$datapath)   
+          }
         
           # Scale the gene data if needed
           if(!input$use_absolute){
@@ -353,6 +377,9 @@ shinyServer(
         # Genotype list
         s_options <- list()
         for(r in reps) s_options[[r]] <- r
+        message(">>>>>>>>>>>>")
+        message(s_options)
+        message(">>>>>>>>>>>>")
         updateSelectInput(session, "ref_reps", choices = s_options)  
         updateSelectInput(session, "ref_reps_2", choices = s_options)  
         
@@ -378,7 +405,7 @@ shinyServer(
     
     observe({
       
-      if(is.null(rs$reporter) || grepl("Please", input$to_plot)){return()}
+      if(is.null(rs$reporter) || grepl("Load", input$to_plot)){return()}
       
       sel <- input$to_plot
       reps <- na.omit(unique(factor(rs$reporter$line)))
@@ -387,6 +414,9 @@ shinyServer(
       # Genotype check box
       s_options <- list()
       for(r in reps1) s_options[[r]] <- r
+      message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+      message(reps1)
+      message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
       updateSelectInput(session, "to_plot", choices = s_options, selected=sel)  
     })
     
@@ -397,12 +427,11 @@ shinyServer(
       if(length(sel) == 0) sel = cell_types
       for(ct in cell_types) ct_options[[ct]] <- ct
       updateSelectInput(session, "type_to_analyse", choices = ct_options, selected=sel) 
-      message(input$type_to_analyse)
     })
     
     observe({
       
-      if(is.null(rs$reporter) || grepl("Please", input$ref_reps)){return()}
+      if(is.null(rs$reporter) || grepl("Load", input$ref_reps)){return()}
       
       sel <- input$ref_reps
       reps <- na.omit(unique(factor(rs$reporter$line)))
@@ -418,7 +447,7 @@ shinyServer(
     
     observe({
       
-      if(is.null(rs$reporter) || grepl("Please", input$ref_reps_2)){return()}
+      if(is.null(rs$reporter) || grepl("Load", input$ref_reps_2)){return()}
       
       sel <- input$ref_reps_2
       reps <- na.omit(unique(factor(rs$reporter$line)))
@@ -490,7 +519,7 @@ shinyServer(
 ## PLOT THE LDA PLOT FOR THE REPORTERS  #############################
     
     output$ldaPlot <- renderPlotly({
-      if(is.null(rs$reporter) || grepl("Please", input$to_plot)){return()}
+      if(is.null(rs$reporter) || grepl("Load", input$to_plot)){return()}
       print(ldaPlot(reps = input$ref_reps, to_plot = input$to_plot, rep = rs$lda.fit))
     })
     
@@ -524,14 +553,14 @@ shinyServer(
     
     
     output$name_pred_1 <- renderText({
-      if(is.null(rs$reporter) || grepl("Please", input$ref_genes)){return()}
+      if(is.null(rs$reporter) || grepl("Load", input$ref_genes)){return()}
       gene <- rs$gene
       as.character(gene$prediction[gene$Gene_ID == input$ref_genes])
     })  
   
     
     output$line_comp_text <- renderText({ 
-      if(is.null(rs$rep.maov) || grepl("Please", input$to_plot)){return()}
+      if(is.null(rs$rep.maov) || grepl("Load", input$to_plot)){return()}
       sig <- rs$rep.maov[input$ref_reps, input$to_plot]
       text <- ""
       if(sig <= 0.05){ text <- "The overall difference between lines IS statistically significant."
@@ -541,7 +570,7 @@ shinyServer(
     
     
     output$line_comp_pval <- renderText({ 
-      if(is.null(rs$rep.maov) || grepl("Please", input$to_plot)){return()}
+      if(is.null(rs$rep.maov) || grepl("Load", input$to_plot)){return()}
       sig <- rs$rep.maov[input$ref_reps, input$to_plot]
       text <- ""
       if(sig <= 0.05){ text <- paste0("p-value = ",round(sig, 3))
@@ -566,6 +595,54 @@ shinyServer(
     
     
     
+    
+    output$littTitle <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      strong(rs$dts$title[rs$dts$name == input$reporters])
+    }) 
+    
+    output$littAuth <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      rs$dts$author[rs$dts$name == input$reporters]
+    }) 
+    
+    output$littRef <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      litt <- rs$dts[rs$dts$name == input$reporters,]
+      paste0(litt$journal, ", ", litt$volume, ", ", litt$pages, ", ", litt$year)
+    })     
+    
+    output$doi <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      litt <- rs$dts
+      link <- paste0("http://dx.doi.org/", litt$doi[litt$name == input$reporters])
+      a("View paper", href=link, target="_blank")
+    }) 
+    
+    
+    
+    output$littTitle1 <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      strong(rs$dts$title[rs$dts$name == input$microarrays])
+    }) 
+    
+    output$littAuth1 <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      rs$dts$author[rs$dts$name == input$microarrays]
+    }) 
+    
+    output$littRef1 <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      litt <- rs$dts[rs$dts$name == input$microarrays,]
+      paste0(litt$journal, ", ", litt$volume, ", ", litt$pages, ", ", litt$year)
+    })     
+    
+    output$doi1 <- renderUI( {
+      if(is.null(rs$dts)){return()}
+      litt <- rs$dts
+      link <- paste0("http://dx.doi.org/", litt$doi[litt$name == input$microarrays])
+      a("View paper", href=link, target="_blank")
+    })     
     
 #------------------------------------------------------
 #------------------------------------------------------

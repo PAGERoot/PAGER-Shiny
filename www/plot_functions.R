@@ -55,7 +55,6 @@ plotRootKey <- function(root){
   plot <- pl + geom_raster(data = root, aes(y, -x, fill = factor(tissue)), interpolate = T) + 
     scale_fill_brewer(palette = "Set1", na.value = "black")
   
-  
   plot
 }
 
@@ -285,8 +284,8 @@ heatmap <- function(rep.maov){
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size=15),
       axis.text = element_text(size=15),
-      legend.text = element_text(size=30),
-      legend.title = element_text(size=30)) +
+      legend.text = element_text(size=10),
+      legend.title = element_text(size=10)) +
     
     scale_fill_manual(values=c("#00BC4760", "#00BC47", "white"), 
                       name="Significance level",
@@ -314,8 +313,8 @@ heatmap_dist <- function(gene.dist){
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size=15),
       axis.text = element_text(size=15),
-      legend.text = element_text(size=30),
-      legend.title = element_text(size=30)) +
+      legend.text = element_text(size=10),
+      legend.title = element_text(size=10)) +
     scale_fill_distiller(palette="Spectral")+
     #scale_fill_gradient(low="blue", high="white", space="Lab")   +
     xlab("") + ylab("")  +
