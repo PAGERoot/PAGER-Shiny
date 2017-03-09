@@ -30,7 +30,7 @@
 
 packages <- c("ggplot2", "plyr", "gridExtra", "MASS", 
               "reshape2", "RColorBrewer", "readxl", 
-              "lattice", "plotly", "gridExtra", "xml2")
+              "lattice", "plotly", "gridExtra", "xml2", "data.table")
 for(p in packages){
   if (!require(p,character.only = TRUE)){
     install.packages(p, dep=TRUE)

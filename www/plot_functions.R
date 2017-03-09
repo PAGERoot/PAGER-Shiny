@@ -74,12 +74,14 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
+  temp1$value <- range01(temp1$value)
   for(t in unique(as.character(temp1$variable))){
     root$value[root$id == 1 & root$tissue == t] <- temp1$value[temp1$variable == t]
   }
   
   # Get the value to plot for the comparison line
   temp2 <- rep.agg.short[rep.agg.short$line == to_plot ,]
+  temp2$value <- range01(temp2$value)
   for(t in unique(as.character(temp2$variable))){
     root$value[root$id == 2 & root$tissue == t] <- temp2$value[temp1$variable == t]
   } 
@@ -87,9 +89,12 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   
   # Get the value to plot for the difference
   temp <- temp1
-  temp$value <- temp2$value - temp1$value
-  temp$pvalue <- rep.aov$pvalue[(rep.aov$genotype_1 == to_plot & rep.aov$genotype_2 == reps) | 
-                                     (rep.aov$genotype_1 == reps & rep.aov$genotype_2 == to_plot)]
+  for(t in unique(as.character(temp2$variable))){
+    temp$value[temp$variable == t] <- temp2$value[temp2$variable == t] - temp1$value[temp1$variable == t]
+  }
+  pvals <- rep.aov[(rep.aov$genotype_1 == to_plot & rep.aov$genotype_2 == reps) | 
+                                     (rep.aov$genotype_1 == reps & rep.aov$genotype_2 == to_plot),c("tissue", "pvalue")]
+  temp <- merge(temp, pvals, by.x="variable", by.y = "tissue")  
   temp <- temp[as.numeric(temp$pvalue) < 0.05,]
   
   root$value[root$id == 3 & root$tissue != "borders"] <- 0
@@ -102,6 +107,7 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   root3 <- root[root$id == 3,]
   
   rg <- range(root1$value, root2$value, na.rm = T)
+  # rg <- range(0,1)
   
   pl <- ggplot() + coord_fixed() +
     theme_classic() +
@@ -122,12 +128,12 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   
   plot1 <- pl + geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) + 
+    scale_fill_gradientn(colours=cscale,na.value = "black", limits=rg) + 
     ggtitle(paste0(reps, "\n n = ",n1))
   
   plot2 <- pl + geom_raster(data = root2, aes(y, -x, fill = value), interpolate = T) + 
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) +     
+    scale_fill_gradientn(colours= cscale,na.value = "black", limits=rg) +     
     ggtitle(paste0(to_plot, "\n n = ",n2)) 
   
   if(show){
@@ -156,12 +162,13 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
 plotRootGene <- function(reps, gene, root, rep.agg.short){
   
   #Initialize the root map
-  
+
   root$value <- NA
   root$value[root$tissue != "borders"] = 1
 
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
+  temp1$value <- range01(temp1$value)
   name <- temp1$line[1]
   match <- temp1$match[1]
   for(t in unique(as.character(temp1$variable))){
@@ -170,7 +177,8 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
   
   # Get the value to plot for the comparison line
   temp <- gene[gene$Gene_ID == match,]
-  temp <- melt(temp, id.vars = c("Gene_ID", "match", "distance"))  
+  temp <- ddply(temp, .(Gene_ID, variable), summarise, value=mean(value))#melt(temp, id.vars = c("Gene_ID"))  
+  temp$value <- range01(temp$value)
   for(t in unique(as.character(temp$variable))){
     root$value[root$id == 2 & root$tissue == t] <- temp$value[temp$variable == t]
   }   
@@ -179,6 +187,7 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
   root2 <- root[root$id == 2,]
 
   rg <- range(root1$value, root2$value, na.rm = T)
+  rg <- range(0,1)
   
   pl <- ggplot() + coord_fixed() +
     theme_classic() +
@@ -199,12 +208,12 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
   
   plot1 <- pl + geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) +     
+    scale_fill_gradientn(colours=cscale,na.value = "black", limits=rg) +     
     ggtitle(name)
   
   plot2 <- pl + geom_raster(data = root2, aes(y, -x, fill = value), interpolate = T) + 
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=c("#FFFFFF", "#51A9F9","#255A8A","#000000"),na.value = "black", limits=rg) +     
+    scale_fill_gradientn(colours=cscale,na.value = "black", limits=rg) +     
     ggtitle(match) 
   
   plot <- grid.arrange(plot1, plot2, ncol=2)
@@ -217,17 +226,18 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
 
 ###### BARPLOTS
 
-barplot_comp_1 <- function(reps, gene, rep.agg.short){
+barplot_comp_1 <- function(reps, gene, rep.agg){
   
-  temp2 <- rep.agg.short[rep.agg.short$line == reps,]
+  temp2 <-rep.agg[rep.agg$line == reps,]
   match <- temp2$match[1]
-  temp <- melt(gene[gene$Gene_ID == match,], id.vars = c("Gene_ID", "match", "distance"))
-  temp <- temp[,-2]
+  temp <- gene[gene$Gene_ID == match,]
+  temp2 <- temp2[,-c(2, 5)]
   colnames(temp) <- colnames(temp2)
   temp <- rbind(temp, temp2)
   
   plot1 <- ggplot(temp, aes(variable, value, fill=line)) + 
-    geom_bar(stat = "identity", position=position_dodge(width=0.9), width=0.8) + 
+    # geom_bar(stat = "identity", position=position_dodge(width=0.9), width=0.8) + 
+    geom_boxplot( width=0.8, size=1) + 
     theme_bw() + 
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size=14),
@@ -267,9 +277,10 @@ barplot_comp <- function(reps, to_plot, data){
 heatmap <- function(rep.maov){
   
   rep.maov[rep.maov == 0] <- "ns."
-  rep.maov[rep.maov <= 0.01] <- "***"
-  rep.maov[rep.maov <= 0.05 & rep.maov > 0.01] <- "*"
-  rep.maov[rep.maov > 0.05] <- "ns."
+  rep.maov[rep.maov == -1] <- "NA"
+  # rep.maov[rep.maov <= 0.01] <- "***"
+  rep.maov[rep.maov <= 0.05] <- "*"
+  rep.maov[rep.maov > 0.05 & rep.maov != "ns." & rep.maov != "NA"] <- "ns."
   
   dat <- as.data.frame(rep.maov)
   dat$line_1 <- rownames(dat)
@@ -277,7 +288,8 @@ heatmap <- function(rep.maov){
   
   dat$line_2 <- dat$variable
   dat$p_value <- dat$value
-  ## Example data
+  
+  
   plot1 <- ggplot(dat, aes(line_1, line_2, z= p_value)) + 
     geom_tile(aes(fill = p_value)) + 
     theme_bw() + 
@@ -287,9 +299,9 @@ heatmap <- function(rep.maov){
       legend.text = element_text(size=10),
       legend.title = element_text(size=10)) +
     
-    scale_fill_manual(values=c("#00BC4760", "#00BC47", "white"), 
+    scale_fill_manual(values=c("#00BC47", "white", "grey"), 
                       name="Significance level",
-                      labels=c("*","***", "ns.")) +
+                      labels=c("*", "ns.", "NA")) +
     #scale_fill_gradient(low="blue", high="white", space="Lab")   +
     xlab("") + ylab("") + 
     coord_fixed()

@@ -40,7 +40,7 @@ shinyUI(fluidPage(
         tabsetPanel( 
           tabPanel("Your data",        
                    fileInput('rep_file', 'Choose reporter expression data File', accept=c('text', '.rsml')),
-                   fileInput('gene_file', 'Choose gene expression data File', accept=c('text/tab-separated-values', '.txt'))
+                   fileInput('gene_file', 'Choose gene expression data File', accept=c('text/comma-separated-values', '.csv'))
           ),
           tabPanel("Sample data",
               checkboxInput('use_example', "Use example data", value = FALSE, width = NULL),
@@ -112,15 +112,24 @@ shinyUI(fluidPage(
                                           helpText("Normalized level of fluorescence for the different cell layers"),
                                           value=1
                                           ),
+                                 
+                                 tabPanel("PCA plot",
+                                          plotlyOutput("ldaPlot"),
+                                          tags$hr(),
+                                          helpText("Graphical representation of the two first dimentions on the
+                                                   Linear Discriminant Analysis done on the reporter lines dataset.
+                                                   The plotted lines are shown in color, while the other lines are displayed in grey"),
+                                          value=1
+                                          ),
 
-                                 tabPanel("MAOV results",
-                                          tags$hr(),
-                                          helpText("This table contains all the comparison between the different reporter lines, using MANOVA analyses"),
-                                          downloadButton('download_moav', 'Download table'),
-                                          tags$hr(),
-                                          tableOutput('maov_results'),
-                                          value=2
-                                  ),
+                                 # tabPanel("MAOV results",
+                                 #          tags$hr(),
+                                 #          helpText("This table contains all the comparison between the different reporter lines, using MANOVA analyses"),
+                                 #          downloadButton('download_moav', 'Download table'),
+                                 #          tags$hr(),
+                                 #          tableOutput('maov_results'),
+                                 #          value=2
+                                 #  ),
 
                                  tabPanel("AOV results",
                                           tags$hr(),
@@ -129,24 +138,7 @@ shinyUI(fluidPage(
                                           tags$hr(),
                                           tableOutput('aov_results'),
                                           value=2
-                                 ),
-                                 
-                                 tabPanel("PCA plot",
-                                          plotlyOutput("ldaPlot"),
-                                          tags$hr(),
-                                          helpText("Graphical representation of the two first dimentions on the
-                                                  Linear Discriminant Analysis done on the reporter lines dataset.
-                                                  The plotted lines are shown in color, while the other lines are displayed in grey"),
-                                          value=1
-                                 ),                                 
-                                 
-                                 tabPanel("MOAV Summary",
-                                          plotOutput("heatmap", width = "100%", height="600px"),
-                                          tags$hr(),
-                                          helpText("Heatmap of the MANOVA results between the different lines.
-                                    For each line combinaison, a MANOVA analysis was performed in order to determine if there
-                                    expression patterns were different.")         
-                                )
+                                 )
                               )
                         )
                       ),
@@ -157,10 +149,22 @@ shinyUI(fluidPage(
 #------------------------------------------------------------------
 
 
+                                 
+
+          tabPanel("MOAV Summary",
+                   plotOutput("heatmap", width = "100%", height="800px"),
+                   tags$hr(),
+                   helpText("Heatmap of the MANOVA results between the different lines.
+                                              For each line combinaison, a MANOVA analysis was performed in order to determine if there
+                                              expression patterns were different.")         
+          ),
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
 
 
              
-            tabPanel("Match Reporter to Gene",
+            tabPanel("Compare Reporter to Gene",
                      helpText("Expression pattern in the root"),
                      tags$hr(),
                      fluidRow(
@@ -173,24 +177,20 @@ shinyUI(fluidPage(
                           plotOutput("plotRootGene", height="800px", width="100%")
                        ),
                        column(6,
-                        tabsetPanel(
-
-                          tabPanel("Boxplot",
-                                   plotOutput("barplot_comp_1"),
-                                   tags$hr(),
-                                   helpText("Graphical representation of the two first dimentions on the
-                                            Linear Discriminant Analysis done on the reporter lines dataset.
-                                            The plotted lines are shown in color, while the other lines are displayed in grey"),
-                                   value=1
-                                   ),
-                          tabPanel("Heatmap of distances",
-                                   plotOutput("heatmap_dist", height="600px", width="100%"),
-                                   tags$hr(),
-                                   helpText("Heat map of the distances between the different reporter lines and the different gene experessio datasets"),
-                                   value=1
-                          )                          
-                          )
-                        ),
+                              h4("Single differences between the root types of the selected reporter lines"),
+                              textOutput("gene_comp"),
+                              tags$hr(),
+                              tabsetPanel(
+                                tabPanel("Boxplot",
+                                         plotOutput("barplot_comp_1"),
+                                         tags$hr(),
+                                         helpText("Graphical representation of the two first dimentions on the
+                                                  Linear Discriminant Analysis done on the reporter lines dataset.
+                                                  The plotted lines are shown in color, while the other lines are displayed in grey"),
+                                         value=1
+                                         )                        
+                                )
+                              ),
                        width="100%",
                        height="100%"
                        ),
@@ -200,7 +200,7 @@ shinyUI(fluidPage(
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-              tabPanel("Dowload processed data",
+              tabPanel("Download processed data",
                   tags$hr(),
                   tabsetPanel(
                      
@@ -218,22 +218,13 @@ shinyUI(fluidPage(
                               tags$hr(),
                               tableOutput('aov_results_all'),
                               value=2
-                     ),
+                     )  ,
                      
-                     tabPanel("Gene results",
-                              helpText("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."),
-                              downloadButton('download_gene_all', 'Download full table'),
+                     tabPanel("Gene AOV results",
+                              helpText("This table contains all the comparison between the different reporter lines and their corresponding gene, for each cell type, using 2-way ANOVA analyses"),
+                              downloadButton('download_oav_gene_all', 'Download full table'),
                               tags$hr(),
-                              tableOutput('gene_results_all'),
-                              value=2
-                     ),
-                     
-                     tabPanel("Comparison results",
-                              helpText("The matching between a reporter line and a gene is computed based on the euclidean distance between both datasets. The matching gene is
-                                       defined as the one with the shortest euclidean distance from the reporter. The distance is computed as D=√∑(x-xi)2"),
-                              downloadButton('download_comp', 'Download'),
-                              tags$hr(),
-                              tableOutput('comp_results'),
+                              tableOutput('aov_gene_results_all'),
                               value=2
                      )                     
                    ),                       

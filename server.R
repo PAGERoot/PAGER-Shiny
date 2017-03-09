@@ -51,6 +51,7 @@ shinyServer(
                          rep.melt = NULL,
                          tissues = NULL,
                          rep.aov = NULL,
+                         rep.aov.gene = NULL,
                          rep.maov = NULL,
                          p.list= NULL,
                          gene.list = NULL,
@@ -67,15 +68,14 @@ shinyServer(
       rs$dts <- dts
 
       fileName <- 'www/datasets/reporters/'
-      flist <- unique(gsub(".rsml", "", list.files(fileName)))
+      flist <- unique(gsub(".csv", "", list.files(fileName)))
       fl <- dts$name[dts$id %in% flist]
       updateSelectInput(session, "reporters", choices = fl)  
       
       fileName <- 'www/datasets/microarrays/'
-      flist <- unique(gsub(".txt", "", list.files(fileName)))
+      flist <- unique(gsub(".csv", "", list.files(fileName)))
       fl <- dts$name[dts$id %in% flist]
       updateSelectInput(session, "microarrays", choices = fl)  
-      
     })         
     
     
@@ -95,8 +95,10 @@ shinyServer(
         
 
         # if(input$use_example){ # Use the exmple dataset
-        #   # gene <- read.table("www/GeneExpression.txt", header = T)
-        #   # temp <- read_rsml("www/experession_small.rsml")
+         # gene <- fread("www/datasets/microarrays/all_genes.csv")
+         # temp <- read_rsml("www/datasets/reporters/experession_full.rsml")
+         # write.csv(temp, "www/datasets/reporters/experession_full.csv", row.names = F)
+         # temp2 <- read.csv("www/datasets/reporters/experession_full.csv")
         #   # load("www/root.RData")
         #   # load("www/example.RData")
         #   for(l in list.files("www/example/")) load(paste0("www/example/", l))
@@ -104,31 +106,25 @@ shinyServer(
         # }else{
           
           # Load two datafiles, for the gene and the reporters
-          inGene <- input$gene_file
-          inReporter <- input$rep_file
-          
-          
+
           if(input$use_example){
             dat <- rs$dts$id[rs$dts$name == input$microarrays]
-            gene <- read.table(paste0('www/datasets/microarrays/', dat,".txt"), header = T)
+            gene <- fread(paste0('www/datasets/microarrays/', dat,".csv"))
             dat <- rs$dts$id[rs$dts$name == input$reporters]
-            temp <- read_rsml(paste0('www/datasets/reporters/', dat,".rsml"))
+            temp <- read.csv(paste0('www/datasets/reporters/', dat,".csv"))
           }else{
+            inGene <- input$gene_file
+            inReporter <- input$rep_file
+
             if (is.null(inReporter)) return(NULL)
             if(!is.null(inGene)){
-              gene <- read.table(inGene$datapath, header = T)   
+              gene <- fread(inGene$datapath)   
             }
             temp <- read_rsml(inReporter$datapath)   
-          }
-        
-          # Scale the gene data if needed
-          if(!input$use_absolute){
-            for(i in c(1:nrow(gene))) gene[i,c(2:ncol(gene))] <- range01(gene[i,c(2:ncol(gene))])
           }
           
           
           # Average the data by line, root, cell type
-          
           if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=mean(value))
           if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=median(value))
           if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=min(value))
@@ -136,7 +132,6 @@ shinyServer(
           mean_data <- mean_data[!is.na(mean_data$value),]
           
           # Average the data by line, cell type
-          
           if(input$method == "Mean") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=mean(value))
           if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=median(value))
           if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=min(value))
@@ -149,7 +144,7 @@ shinyServer(
             reporter[[cn]][is.na(reporter[[cn]])] <- 0
           }
           
-          rep.mean <- dcast(mean_data_2, line ~ cell_type)
+          rep.mean <- dcast(mean_data_2, line ~ cell_type) # For the display
         
         
         
@@ -163,14 +158,14 @@ shinyServer(
         
         # Aggregate the data   
         rep.melt <- melt(reporter, id.vars =c("line", "root"))
-        gene.melt <- melt(gene, id.vars =c("Gene_ID"))
+        # gene.melt <- melt(gene, id.vars =c("Gene_ID"))
         rep.agg.short <- ddply(rep.melt, .(line, variable), summarize, value=mean(value))
         
         # ----------------------------------------------------------------------------------
         # ----- PAIRWISE ANOVA COMPARISONS AND MANOVA ANALYSIS   ---------------------------
         # ----------------------------------------------------------------------------------            
         
-        incProgress(1/4, detail = "Performing the MANOVA")
+        incProgress(1/4, detail = "Analysing the data")
         
           # Create a table that will contain the anova results
           l1 <- length(p.list)
@@ -183,7 +178,7 @@ shinyServer(
                                      pvalue = numeric(l3), 
                                      stringsAsFactors = F)
           
-          maov.results <<- matrix(0, ncol = l1, nrow = l1) 
+          maov.results <<- matrix(NA, ncol = l1, nrow = l1) 
           colnames(maov.results) <- p.list 
           rownames(maov.results) <- p.list
           
@@ -192,13 +187,14 @@ shinyServer(
           for(p in p.list){
             j <- 1
             for(p1 in p.list){
-              if(p != p1 & maov.results[j,i] == 0){
+              if(p != p1 & is.na(maov.results[j,i])){
                 
                 # MANOVA analysis to compare the plants
                 temp <- reporter[reporter$line == p | reporter$line == p1,]
                 
                 # Get the ines sleected by the user
-                ts <- cell_types <- c("columella","cortex","endodermis","epidermis","lateralrootcap","QC","stele")#input$type_to_analyse
+                ts <- c("columella","cortex","endodermis","epidermis","lateralrootcap","QC","stele")
+                # ts <- input$type_to_analyse
                 # This is a very ugly way to do this; 
                 for(t in c(1:length(ts))) temp[[paste0("V",t)]] <- temp[[ts[t]]]
                 if(length(ts) == 1) fit <- manova(cbind(V1) ~ line,  temp)
@@ -209,10 +205,15 @@ shinyServer(
                 if(length(ts) == 6) fit <- manova(cbind(V1,V2,V3,V4,V5,V6) ~ line,  temp)
                 if(length(ts) == 7) fit <- manova(cbind(V1,V2,V3,V4,V5,V6,V7) ~ line,  temp)
                 # fit <- manova(cbind(lateralrootcap, columella, QC, epidermis, cortex, endodermis, stele) ~ line,  temp) # Stele was removed
-                
-                maov.results[j,i] <- round(summary(fit, test = "Wilks")$stats[1,6], 5)
+
+                maov.results[j,i] <- tryCatch({
+                  round(summary(fit, test = "Wilks", tol=0)$stats[1,6], 5)
+                },warning = function(w) {
+                }, error = function(e) {
+                  -1
+                })
                 maov.results[i,j] <- maov.results[j,i]
-                
+
                 # Reponse for each tissue
                 for(ti in tissues){
                   temp <- rep.melt[rep.melt$line == p | rep.melt$line == p1,]
@@ -237,62 +238,79 @@ shinyServer(
           # ----- PAIRWISE DISTANCE COMPARISONS BETWEEN GENES AND REPORTERS   ---------------------------
           # ----------------------------------------------------------------------------------            
           
-          incProgress(1/5, detail = "Performing the distance analysis")
+          incProgress(1/5, detail = "Matching the genes")
           
-          # Create a table that will contain the anova results
-          l1 <- length(p.list)
-          l2 <- length(gene.list)
-          
-          dist.results <<- matrix(0, ncol = l1, nrow = l2) 
-          colnames(dist.results) <- p.list 
-          rownames(dist.results) <- gene.list
-          
-          i <- 1
+          # # Create a table that will contain the anova results
+          # l1 <- length(p.list)
+          # l2 <- length(gene.list)
+          # 
+          # dist.results <<- matrix(0, ncol = l1, nrow = l2) 
+          # colnames(dist.results) <- p.list 
+          # rownames(dist.results) <- gene.list
+          # 
+          # i <- 1
+          # for(p in p.list){
+          #   j <- 1
+          #   for(p1 in gene.list){
+          #     if(dist.results[j,i] == 0){
+          #       
+          #       # MANOVA analysis to compare the plants
+          #       temp <- rep.agg.short[rep.agg.short$line == p,]
+          #       temp2 <- gene.melt[gene.melt$Gene_ID == p1,]
+          #       
+          #       # Get the ines sleected by the user
+          #       #ts <- c("columella","cortex","endodermis","epidermis")#,"lateralrootcap","QC","stele")#input$type_to_analys
+          #       ts <- input$type_to_analyse
+          #       
+          #       temp <- temp[temp$variable %in% ts,]
+          #       temp2 <- temp2[temp2$variable %in% ts,]
+          #       
+          #       dist.results[j,i] <- dist(rbind(temp$value, temp2$value))
+          #       #dist.results[i,j] <- dist.results[j,i]
+          #       
+          #     }
+          #     j <- j+1
+          #   }
+          #   i <- i+1
+          # }
+          # 
+          # dist <- data.frame(dist.results)
+          # dist$gene <- rownames(dist)
+          # dist <- melt(dist, id.vars=c("gene"))
+          # 
+          # for(g in gene.list){
+          #   temp <- dist[dist$gene == g,]
+          #   temp <- temp[temp$value  == min(temp$value),]
+          #   gene$match[gene$Gene_ID == g] <- as.character(temp$variable[1])
+          #   gene$distance[gene$Gene_ID == g] <- temp$value[1]
+          # }
+          # 
+          # dist <- data.frame(t(dist.results))
+          # dist$rep <- rownames(dist)
+          # dist <- melt(dist, id.vars=c("rep"))
+          aov.results.gene <- NULL
           for(p in p.list){
-            j <- 1
-            for(p1 in gene.list){
-              if(dist.results[j,i] == 0){
-                
-                # MANOVA analysis to compare the plants
-                temp <- rep.agg.short[rep.agg.short$line == p,]
-                temp2 <- gene.melt[gene.melt$Gene_ID == p1,]
-                
-                # Get the ines sleected by the user
-                ts <- c("columella","cortex","endodermis","epidermis")#,"lateralrootcap","QC","stele")#input$type_to_analys
-                #ts <- input$type_to_analyse
-                
-                temp <- temp[temp$variable %in% ts,]
-                temp2 <- temp2[temp2$variable %in% ts,]
-                
-                dist.results[j,i] <- dist(rbind(temp$value, temp2$value))
-                #dist.results[i,j] <- dist.results[j,i]
-                
+            ge <- strsplit(p, "_")[[1]]
+            ge <- ge[grepl("AT[1-9]G", ge)] # find the corresping gene
+            ge <- gsub("AT", "At", ge)
+            ge <- gsub("G", "g", ge)
+            # temp <- temp[temp$value  == min(temp$value),]
+            if(length(ge) > 0){
+              rep.mean$match[rep.mean$line == p] <- ge #as.character(temp$variable[1])
+              # rep.mean$distance[rep.mean$line == p] <- temp$value[1]
+              rep.agg.short$match[rep.agg.short$line == p] <- ge #as.character(temp$variable[1])
+              rep.melt$match[rep.melt$line == p] <- ge #as.character(temp$variable[1])
+              # rep.agg.short$distance[rep.agg.short$line == p] <- temp$value[1]
+              
+              temp <- rep.melt[rep.melt$line == p,]
+              temp2 <- gene[gene$Gene_ID == ge,]
+              colnames(temp2) <- c("line", "variable", "value")
+              for(t in tissues){
+                tmp <- rbind(temp[temp$variable == t,c("line", "value")],temp2[temp2$variable == t,c("line", "value")])
+                fit <- aov(value ~ line, data=tmp)
+                aov.results.gene <- rbind(aov.results.gene, data.frame(line=p, gene=ge, tissue=t, pvalue = round(summary(fit)[[1]][1,5], 5)))
               }
-              j <- j+1
             }
-            i <- i+1
-          }
-          
-          dist <- data.frame(dist.results)
-          dist$gene <- rownames(dist)
-          dist <- melt(dist, id.vars=c("gene"))
-          for(g in gene.list){
-            temp <- dist[dist$gene == g,]
-            temp <- temp[temp$value  == min(temp$value),]
-            gene$match[gene$Gene_ID == g] <- as.character(temp$variable[1])
-            gene$distance[gene$Gene_ID == g] <- temp$value[1]
-          }
-          
-          dist <- data.frame(t(dist.results))
-          dist$rep <- rownames(dist)
-          dist <- melt(dist, id.vars=c("rep"))
-          for(p in p.list){
-            temp <- dist[dist$rep == p,]
-            temp <- temp[temp$value  == min(temp$value),]
-            rep.mean$match[rep.mean$line == p] <- as.character(temp$variable[1])
-            rep.mean$distance[rep.mean$line == p] <- temp$value[1]
-            rep.agg.short$match[rep.agg.short$line == p] <- as.character(temp$variable[1])
-            rep.agg.short$distance[rep.agg.short$line == p] <- temp$value[1]
           }
           
           
@@ -301,17 +319,18 @@ shinyServer(
         # ----- LDA ANALYSIS ------------------------------------
         # -------------------------------------------------------            
         
-        incProgress(1/5, detail = "Performing the LDA")
+        incProgress(1/5, detail = "Performing the PCA")
         
           # Make the LDA analysis on the reporter dataset.
-          ts <- c("line", input$type_to_analyse)
+          # ts <- c("line", input$type_to_analyse)
           temp <- reporter[complete.cases(reporter),]
-          temp <- temp[,ts]
+          lines <- temp$line
+          temp <- temp[,input$type_to_analyse]
           
           
           
-          pca <- prcomp(temp[,-c(1,2)], retx = T, scale=T)  # Make the PCA
-          pca.results <- cbind(line=temp$line, data.frame(pca$x)[,])
+          pca <- prcomp(temp, retx = T, scale=T)  # Make the PCA
+          pca.results <- cbind(line=lines, data.frame(pca$x)[,])
           
           # reporter <- 
           # 
@@ -360,10 +379,11 @@ shinyServer(
           rs$rep.melt <- rep.melt
           rs$tissues <- tissues
           rs$rep.aov <- aov.results
+          rs$rep.aov.gene <- aov.results.gene
           rs$rep.maov <- maov.results
           rs$p.list <- p.list
           rs$rep.agg.short <- rep.agg.short
-          rs$gene.dist <- dist.results
+          # rs$gene.dist <- dist.results
 
       #------------------------------------------------------
       # ----- UPDATE THE UI DATA ----------------------------
@@ -377,23 +397,20 @@ shinyServer(
         # Genotype list
         s_options <- list()
         for(r in reps) s_options[[r]] <- r
-        message(">>>>>>>>>>>>")
-        message(s_options)
-        message(">>>>>>>>>>>>")
         updateSelectInput(session, "ref_reps", choices = s_options)  
         updateSelectInput(session, "ref_reps_2", choices = s_options)  
         
         # Genotype check box
         updateSelectInput(session, "to_plot", choices = s_options, selected=s_options[2])  
         
-        gene <- rs$gene
-        # Genes
-        if(!is.null(gene)) {
-          gens <- na.omit(factor(unique(gene$Gene_ID)))
-          g_options <- list()
-          for(g in gens) g_options[[g]] <- g
-          updateSelectInput(session, "ref_genes", choices = g_options)        
-        }
+        # gene <- rs$gene
+        # # Genes
+        # if(!is.null(gene)) {
+        #   gens <- na.omit(factor(unique(gene$Gene_ID)))
+        #   g_options <- list()
+        #   for(g in gens) g_options[[g]] <- g
+        #   updateSelectInput(session, "ref_genes", choices = g_options)        
+        # }
       })
     })
     
@@ -414,9 +431,6 @@ shinyServer(
       # Genotype check box
       s_options <- list()
       for(r in reps1) s_options[[r]] <- r
-      message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-      message(reps1)
-      message(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
       updateSelectInput(session, "to_plot", choices = s_options, selected=sel)  
     })
     
@@ -470,7 +484,7 @@ shinyServer(
     output$barplot_comp_1 <- renderPlot({
       if(is.null(rs$gene)){return()}
       print(barplot_comp_1(reps = input$ref_reps_2,
-                           rep.agg.short = rs$rep.agg.short, 
+                           rep.agg = rs$rep.melt, 
                            gene = rs$gene
                             ))
     })  
@@ -563,8 +577,10 @@ shinyServer(
       if(is.null(rs$rep.maov) || grepl("Load", input$to_plot)){return()}
       sig <- rs$rep.maov[input$ref_reps, input$to_plot]
       text <- ""
-      if(sig <= 0.05){ text <- "The overall difference between lines IS statistically significant."
-      }else{ text <- "The overlall difference between lines IS NOT statistically significant."}
+      if(!is.na(sig)){
+        if(sig <= 0.05){ text <- "The overall difference between lines IS statistically significant."
+        }else{ text <- "The overlall difference between lines IS NOT statistically significant."}
+      }
       return(HTML(text))
     })
     
@@ -573,8 +589,10 @@ shinyServer(
       if(is.null(rs$rep.maov) || grepl("Load", input$to_plot)){return()}
       sig <- rs$rep.maov[input$ref_reps, input$to_plot]
       text <- ""
-      if(sig <= 0.05){ text <- paste0("p-value = ",round(sig, 3))
-      }else{text <- paste0("p-value = ",round(sig, 3))}
+      if(!is.na(sig)){
+        if(sig <= 0.05){ text <- paste0("p-value = ",round(sig, 3))
+        }else{text <- paste0("p-value = ",round(sig, 3))}
+      }
       return(HTML(text))
     })    
 
@@ -585,13 +603,30 @@ shinyServer(
       temp <- rs$rep.agg.short[rs$rep.agg.short$line == input$to_plot,]
       
       rep.aov <- rs$rep.aov
-      temp$pvalue <- rep.aov$pvalue[(rep.aov$genotype_1 == input$to_plot & rep.aov$genotype_2 == input$ref_reps) | 
-                                     (rep.aov$genotype_1 == input$ref_reps & rep.aov$genotype_2 == input$to_plot)]
+      pvals <- rep.aov[(rep.aov$genotype_1 == input$to_plot & rep.aov$genotype_2 == input$ref_reps) | 
+                                (rep.aov$genotype_1 == input$ref_reps & rep.aov$genotype_2 == input$to_plot),c("tissue", "pvalue")]
+      temp <- merge(temp, pvals, by.x="variable", by.y = "tissue")
       temp$sig <- as.numeric(temp$pvalue) < 0.05
       temp <- temp[temp$sig == T,]
       
       paste(temp$variable, "( p-val:", round(as.numeric(temp$pvalue), 4), ")", collapse=" || ")
     })
+    
+    
+    
+    output$gene_comp <- renderText({ 
+      if(is.null(rs$rep.melt)){return()}
+      
+      temp <- rs$rep.agg.short[rs$rep.agg.short$line == input$ref_reps_2,]
+      
+      rep.aov.gene <- rs$rep.aov.gene
+      pvals <- rep.aov.gene[rep.aov.gene$line == input$ref_reps_2,c("tissue", "pvalue")]
+      temp <- merge(temp, pvals, by.x="variable", by.y = "tissue")
+      temp$sig <- as.numeric(temp$pvalue) < 0.05
+      temp <- temp[temp$sig == T,]
+      
+      paste(temp$variable, "( p-val:", round(as.numeric(temp$pvalue), 4), ")", collapse=" || ")
+    })    
     
     
     
@@ -720,6 +755,19 @@ shinyServer(
         write.csv(rs$rep.aov, file)
       }
     )    
+    
+    
+    output$aov_gene_results_all <- renderTable({
+      if(is.null(rs$rep.aov.gene)){return()}
+      rs$rep.aov.gene
+    })    
+    output$download_oav_gene_all <- downloadHandler(
+      filename = function() {"oav_gene_results.csv"},
+      content = function(file) {
+        write.csv(rs$rep.aov.gene, file)
+      }
+    )    
+    
     
     # GENE DATA
     
