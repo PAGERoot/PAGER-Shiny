@@ -67,13 +67,15 @@ shinyServer(
       dts <- read.table(fileName, sep="\t", stringsAsFactors = F, header = T)
       rs$dts <- dts
 
-      fileName <- 'www/datasets/reporters/'
-      flist <- unique(gsub(".csv", "", list.files(fileName)))
+      # fileName <- 'www/datasets/reporters/'
+      # flist <- unique(gsub(".csv", "", list.files(fileName)))
+      flist <-c("experession_full", "experession_ji_young")
       fl <- dts$name[dts$id %in% flist]
       updateSelectInput(session, "reporters", choices = fl)  
       
-      fileName <- 'www/datasets/microarrays/'
-      flist <- unique(gsub(".csv", "", list.files(fileName)))
+      # fileName <- 'www/datasets/microarrays/'
+      # flist <- unique(gsub(".csv", "", list.files(fileName)))
+      flist <-c("all_genes")
       fl <- dts$name[dts$id %in% flist]
       updateSelectInput(session, "microarrays", choices = fl)  
     })         
@@ -92,26 +94,27 @@ shinyServer(
       
         
         incProgress(1/4, detail = "Loading the data")
-        
 
-        # if(input$use_example){ # Use the exmple dataset
-         # gene <- fread("www/datasets/microarrays/all_genes.csv")
-         # temp <- read_rsml("www/datasets/reporters/experession_full.rsml")
-         # write.csv(temp, "www/datasets/reporters/experession_full.csv", row.names = F)
-         # temp2 <- read.csv("www/datasets/reporters/experession_full.csv")
-        #   # load("www/root.RData")
-        #   # load("www/example.RData")
-        #   for(l in list.files("www/example/")) load(paste0("www/example/", l))
-        #   #rs <- rs
-        # }else{
-          
+         #gene <- fread("www/datasets/microarrays/all_genes.csv")
+         #temp <- read_rsml("www/datasets/reporters/experession_ji_young.rsml")
+         #temp <- read_rsml("www/datasets/reporters/experession_full.rsml")
+         
           # Load two datafiles, for the gene and the reporters
 
           if(input$use_example){
-            dat <- rs$dts$id[rs$dts$name == input$microarrays]
-            gene <- fread(paste0('www/datasets/microarrays/', dat,".csv"))
-            dat <- rs$dts$id[rs$dts$name == input$reporters]
-            temp <- read.csv(paste0('www/datasets/reporters/', dat,".csv"))
+            dat1 <- rs$dts$id[rs$dts$name == input$microarrays]
+            dat2 <- rs$dts$id[rs$dts$name == input$reporters]
+            # gene <- fread(paste0('www/datasets/microarrays/', dat1,".csv"))
+            # temp <- read.csv(paste0('www/datasets/reporters/', dat2,".csv"))
+            # 
+            if(dat1 == "all_genes" & dat2 == "experession_full"){
+              message("Loading dataset 1")
+              load("www/example/example1.RData")
+            }else if(dat1 == "all_genes" & dat2 == "experession_ji_young"){
+              message("Loading dataset 2")
+              load("www/example/example2.RData")
+            }            
+            
           }else{
             inGene <- input$gene_file
             inReporter <- input$rep_file
@@ -121,256 +124,175 @@ shinyServer(
               gene <- fread(inGene$datapath)   
             }
             temp <- read_rsml(inReporter$datapath)   
-          }
           
           
-          # Average the data by line, root, cell type
-          if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=mean(value))
-          if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=median(value))
-          if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=min(value))
-          if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=max(value))
-          mean_data <- mean_data[!is.na(mean_data$value),]
           
-          # Average the data by line, cell type
-          if(input$method == "Mean") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=mean(value))
-          if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=median(value))
-          if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=min(value))
-          if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=max(value))
-          mean_data_2 <- mean_data_2[!is.na(mean_data$value),]          
-          
-          # Reshape the data to have them in the proper form for the analysis
-          reporter <- dcast(mean_data, line + root ~ cell_type)
-          for(cn in colnames(reporter)){
-            reporter[[cn]][is.na(reporter[[cn]])] <- 0
-          }
-          
-          rep.mean <- dcast(mean_data_2, line ~ cell_type) # For the display
-        
-        
-        
-        #------------------------------------------------------
-        # PROCESS THE DATA
-        #------------------------------------------------------
-  
-        p.list <- as.character(unique(reporter$line))
-        gene.list <- as.character(unique(gene$Gene_ID))
-        tissues <- colnames(reporter)[-c(1,2)]
-        
-        # Aggregate the data   
-        rep.melt <- melt(reporter, id.vars =c("line", "root"))
-        # gene.melt <- melt(gene, id.vars =c("Gene_ID"))
-        rep.agg.short <- ddply(rep.melt, .(line, variable), summarize, value=mean(value))
-        
-        # ----------------------------------------------------------------------------------
-        # ----- PAIRWISE ANOVA COMPARISONS AND MANOVA ANALYSIS   ---------------------------
-        # ----------------------------------------------------------------------------------            
-        
-        incProgress(1/4, detail = "Analysing the data")
-        
-          # Create a table that will contain the anova results
-          l1 <- length(p.list)
-          l2 <- l1^2
-          l3 <- (((l1 * l1) - l1) / 2) * length(tissues)
-          
-          aov.results <<- data.frame(genotype_1 = character(l3), 
-                                     genotype_2=character(l3), 
-                                     tissue = character(l3), 
-                                     pvalue = numeric(l3), 
-                                     stringsAsFactors = F)
-          
-          maov.results <<- matrix(NA, ncol = l1, nrow = l1) 
-          colnames(maov.results) <- p.list 
-          rownames(maov.results) <- p.list
-          
-          i <- 1
-          k <- 1
-          for(p in p.list){
-            j <- 1
-            for(p1 in p.list){
-              if(p != p1 & is.na(maov.results[j,i])){
-                
-                # MANOVA analysis to compare the plants
-                temp <- reporter[reporter$line == p | reporter$line == p1,]
-                
-                # Get the ines sleected by the user
-                ts <- c("columella","cortex","endodermis","epidermis","lateralrootcap","QC","stele")
-                # ts <- input$type_to_analyse
-                # This is a very ugly way to do this; 
-                for(t in c(1:length(ts))) temp[[paste0("V",t)]] <- temp[[ts[t]]]
-                if(length(ts) == 1) fit <- manova(cbind(V1) ~ line,  temp)
-                if(length(ts) == 2) fit <- manova(cbind(V1,V2) ~ line,  temp)
-                if(length(ts) == 3) fit <- manova(cbind(V1,V2,V3) ~ line,  temp)
-                if(length(ts) == 4) fit <- manova(cbind(V1,V2,V3,V4) ~ line,  temp)
-                if(length(ts) == 5) fit <- manova(cbind(V1,V2,V3,V4,V5) ~ line,  temp)
-                if(length(ts) == 6) fit <- manova(cbind(V1,V2,V3,V4,V5,V6) ~ line,  temp)
-                if(length(ts) == 7) fit <- manova(cbind(V1,V2,V3,V4,V5,V6,V7) ~ line,  temp)
-                # fit <- manova(cbind(lateralrootcap, columella, QC, epidermis, cortex, endodermis, stele) ~ line,  temp) # Stele was removed
-
-                maov.results[j,i] <- tryCatch({
-                  round(summary(fit, test = "Wilks", tol=0)$stats[1,6], 5)
-                },warning = function(w) {
-                }, error = function(e) {
-                  -1
-                })
-                maov.results[i,j] <- maov.results[j,i]
-
-                # Reponse for each tissue
-                for(ti in tissues){
-                  temp <- rep.melt[rep.melt$line == p | rep.melt$line == p1,]
-                  temp1 <- temp[temp$variable == ti,]
-                  if(nrow(temp1) > 3){
-                    fit <- aov(value ~ line, data=temp1)
-                    aov.results[k,] <- c(p1, p, ti, round(summary(fit)[[1]][1,5], 5))
-                  }
-                  else{ # In case there is noit enough data to make the anova
-                    aov.results[k,] <- 1
-                  }
-                  k <- k+1
-                }
-              }
-              j <- j+1
+            # Average the data by line, root, cell type
+            if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=mean(value))
+            if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=median(value))
+            if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=min(value))
+            if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=max(value))
+            mean_data <- mean_data[!is.na(mean_data$value),]
+            
+            # Average the data by line, cell type
+            if(input$method == "Mean") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=mean(value))
+            if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=median(value))
+            if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=min(value))
+            if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=max(value))
+            mean_data_2 <- mean_data_2[!is.na(mean_data$value),]          
+            
+            # Reshape the data to have them in the proper form for the analysis
+            reporter <- dcast(mean_data, line + root ~ cell_type)
+            for(cn in colnames(reporter)){
+              reporter[[cn]][is.na(reporter[[cn]])] <- 0
             }
-            i <- i+1
-          }
+            
+            rep.mean <- dcast(mean_data_2, line ~ cell_type) # For the display
+          
+        
+            
+            #------------------------------------------------------
+            # PROCESS THE DATA
+            #------------------------------------------------------
+      
+            p.list <- as.character(unique(reporter$line))
+            gene.list <- as.character(unique(gene$Gene_ID))
+            tissues <- colnames(reporter)[-c(1,2)]
+            
+            # Aggregate the data   
+            rep.melt <- melt(reporter, id.vars =c("line", "root"))
+            # gene.melt <- melt(gene, id.vars =c("Gene_ID"))
+            rep.agg.short <- ddply(rep.melt, .(line, variable), summarize, value=mean(value))
+            
+            # ----------------------------------------------------------------------------------
+            # ----- PAIRWISE ANOVA COMPARISONS AND MANOVA ANALYSIS   ---------------------------
+            # ----------------------------------------------------------------------------------            
+              
+            incProgress(1/4, detail = "Analysing the data")
+          
+            # Create a table that will contain the anova results
+            l1 <- length(p.list)
+            l2 <- l1^2
+            l3 <- (((l1 * l1) - l1) / 2) * length(tissues)
+            
+            aov.results <<- data.frame(genotype_1 = character(l3), 
+                                       genotype_2=character(l3), 
+                                       tissue = character(l3), 
+                                       pvalue = numeric(l3), 
+                                       stringsAsFactors = F)
+            
+            maov.results <<- matrix(NA, ncol = l1, nrow = l1) 
+            colnames(maov.results) <- p.list 
+            rownames(maov.results) <- p.list
+              
+            i <- 1
+            k <- 1
+            for(p in p.list){
+              j <- 1
+              for(p1 in p.list){
+                if(p != p1 & is.na(maov.results[j,i])){
+                  
+                  # MANOVA analysis to compare the plants
+                  temp <- reporter[reporter$line == p | reporter$line == p1,]
+                  
+                  # Get the ines sleected by the user
+                  ts <- c("columella","cortex","endodermis","epidermis","lateralrootcap","QC","stele")
+                  # ts <- input$type_to_analyse
+                  # This is a very ugly way to do this; 
+                  for(t in c(1:length(ts))) temp[[paste0("V",t)]] <- temp[[ts[t]]]
+                  if(length(ts) == 1) fit <- manova(cbind(V1) ~ line,  temp)
+                  if(length(ts) == 2) fit <- manova(cbind(V1,V2) ~ line,  temp)
+                  if(length(ts) == 3) fit <- manova(cbind(V1,V2,V3) ~ line,  temp)
+                  if(length(ts) == 4) fit <- manova(cbind(V1,V2,V3,V4) ~ line,  temp)
+                  if(length(ts) == 5) fit <- manova(cbind(V1,V2,V3,V4,V5) ~ line,  temp)
+                  if(length(ts) == 6) fit <- manova(cbind(V1,V2,V3,V4,V5,V6) ~ line,  temp)
+                  if(length(ts) == 7) fit <- manova(cbind(V1,V2,V3,V4,V5,V6,V7) ~ line,  temp)
+                  # fit <- manova(cbind(lateralrootcap, columella, QC, epidermis, cortex, endodermis, stele) ~ line,  temp) # Stele was removed
+  
+                  maov.results[j,i] <- tryCatch({
+                    round(summary(fit, test = "Wilks", tol=0)$stats[1,6], 5)
+                  },warning = function(w) {
+                  }, error = function(e) {
+                    -1
+                  })
+                  maov.results[i,j] <- maov.results[j,i]
+  
+                  # Reponse for each tissue
+                  for(ti in tissues){
+                    temp <- rep.melt[rep.melt$line == p | rep.melt$line == p1,]
+                    temp1 <- temp[temp$variable == ti,]
+                    if(nrow(temp1) > 3){
+                      fit <- aov(value ~ line, data=temp1)
+                      aov.results[k,] <- c(p1, p, ti, round(summary(fit)[[1]][1,5], 5))
+                    }
+                    else{ # In case there is noit enough data to make the anova
+                      aov.results[k,] <- 1
+                    }
+                    k <- k+1
+                  }
+                }
+                j <- j+1
+              }
+              i <- i+1
+            }
         
           
           # ----------------------------------------------------------------------------------
-          # ----- PAIRWISE DISTANCE COMPARISONS BETWEEN GENES AND REPORTERS   ---------------------------
+          # ----- AOV BETWEEN THE REPORTER AND THE CORRESPONDING GENE   ---------------------------
           # ----------------------------------------------------------------------------------            
           
-          incProgress(1/5, detail = "Matching the genes")
-          
-          # # Create a table that will contain the anova results
-          # l1 <- length(p.list)
-          # l2 <- length(gene.list)
-          # 
-          # dist.results <<- matrix(0, ncol = l1, nrow = l2) 
-          # colnames(dist.results) <- p.list 
-          # rownames(dist.results) <- gene.list
-          # 
-          # i <- 1
-          # for(p in p.list){
-          #   j <- 1
-          #   for(p1 in gene.list){
-          #     if(dist.results[j,i] == 0){
-          #       
-          #       # MANOVA analysis to compare the plants
-          #       temp <- rep.agg.short[rep.agg.short$line == p,]
-          #       temp2 <- gene.melt[gene.melt$Gene_ID == p1,]
-          #       
-          #       # Get the ines sleected by the user
-          #       #ts <- c("columella","cortex","endodermis","epidermis")#,"lateralrootcap","QC","stele")#input$type_to_analys
-          #       ts <- input$type_to_analyse
-          #       
-          #       temp <- temp[temp$variable %in% ts,]
-          #       temp2 <- temp2[temp2$variable %in% ts,]
-          #       
-          #       dist.results[j,i] <- dist(rbind(temp$value, temp2$value))
-          #       #dist.results[i,j] <- dist.results[j,i]
-          #       
-          #     }
-          #     j <- j+1
-          #   }
-          #   i <- i+1
-          # }
-          # 
-          # dist <- data.frame(dist.results)
-          # dist$gene <- rownames(dist)
-          # dist <- melt(dist, id.vars=c("gene"))
-          # 
-          # for(g in gene.list){
-          #   temp <- dist[dist$gene == g,]
-          #   temp <- temp[temp$value  == min(temp$value),]
-          #   gene$match[gene$Gene_ID == g] <- as.character(temp$variable[1])
-          #   gene$distance[gene$Gene_ID == g] <- temp$value[1]
-          # }
-          # 
-          # dist <- data.frame(t(dist.results))
-          # dist$rep <- rownames(dist)
-          # dist <- melt(dist, id.vars=c("rep"))
-          aov.results.gene <- NULL
-          for(p in p.list){
-            ge <- strsplit(p, "_")[[1]]
-            ge <- ge[grepl("AT[1-9]G", ge)] # find the corresping gene
-            ge <- gsub("AT", "At", ge)
-            ge <- gsub("G", "g", ge)
-            # temp <- temp[temp$value  == min(temp$value),]
-            if(length(ge) > 0){
-              rep.mean$match[rep.mean$line == p] <- ge #as.character(temp$variable[1])
-              # rep.mean$distance[rep.mean$line == p] <- temp$value[1]
-              rep.agg.short$match[rep.agg.short$line == p] <- ge #as.character(temp$variable[1])
-              rep.melt$match[rep.melt$line == p] <- ge #as.character(temp$variable[1])
-              # rep.agg.short$distance[rep.agg.short$line == p] <- temp$value[1]
-              
-              temp <- rep.melt[rep.melt$line == p,]
-              temp2 <- gene[gene$Gene_ID == ge,]
-              colnames(temp2) <- c("line", "variable", "value")
-              for(t in tissues){
-                tmp <- rbind(temp[temp$variable == t,c("line", "value")],temp2[temp2$variable == t,c("line", "value")])
-                fit <- aov(value ~ line, data=tmp)
-                aov.results.gene <- rbind(aov.results.gene, data.frame(line=p, gene=ge, tissue=t, pvalue = round(summary(fit)[[1]][1,5], 5)))
+            incProgress(1/5, detail = "Matching the genes")
+            
+            aov.results.gene <- NULL
+            for(p in p.list){
+              ge <- strsplit(p, "_")[[1]]
+              ge <- ge[grepl("AT[1-9]G", ge)] # find the corresping gene
+              ge <- gsub("AT", "At", ge)
+              ge <- gsub("G", "g", ge)
+              # temp <- temp[temp$value  == min(temp$value),]
+              if(length(ge) > 0){
+                rep.mean$match[rep.mean$line == p] <- ge #as.character(temp$variable[1])
+                # rep.mean$distance[rep.mean$line == p] <- temp$value[1]
+                rep.agg.short$match[rep.agg.short$line == p] <- ge #as.character(temp$variable[1])
+                rep.melt$match[rep.melt$line == p] <- ge #as.character(temp$variable[1])
+                # rep.agg.short$distance[rep.agg.short$line == p] <- temp$value[1]
+                
+                temp <- rep.melt[rep.melt$line == p,]
+                temp2 <- gene[gene$Gene_ID == ge,]
+                colnames(temp2) <- c("line", "variable", "value")
+                for(t in tissues){
+                  tmp <- rbind(temp[temp$variable == t,c("line", "value")],temp2[temp2$variable == t,c("line", "value")])
+                  fit <- aov(value ~ line, data=tmp)
+                  aov.results.gene <- rbind(aov.results.gene, data.frame(line=p, gene=ge, tissue=t, pvalue = round(summary(fit)[[1]][1,5], 5)))
+                }
               }
             }
+            
+          
+          
+            # -------------------------------------------------------
+            # ----- PCA ANALYSIS ------------------------------------
+            # -------------------------------------------------------            
+          
+            incProgress(1/5, detail = "Performing the PCA")
+          
+            # Make the LDA analysis on the reporter dataset.
+            # ts <- c("line", input$type_to_analyse)
+            temp <- reporter[complete.cases(reporter),]
+            lines <- temp$line
+            temp <- temp[,input$type_to_analyse]
+            # temp <- temp[,cell_types]
+            
+            
+            
+            pca <- prcomp(temp, retx = T, scale=T)  # Make the PCA
+            pca.results <- cbind(line=lines, data.frame(pca$x)[,])
+
           }
-          
-          
-          
-        # -------------------------------------------------------
-        # ----- LDA ANALYSIS ------------------------------------
-        # -------------------------------------------------------            
         
-        incProgress(1/5, detail = "Performing the PCA")
+          # save(reporter,rep.mean,gene,pca.results,rep.melt,tissues,aov.results,aov.results.gene,maov.results,p.list,rep.agg.short, file="www/example/example2.RData")
         
-          # Make the LDA analysis on the reporter dataset.
-          # ts <- c("line", input$type_to_analyse)
-          temp <- reporter[complete.cases(reporter),]
-          lines <- temp$line
-          temp <- temp[,input$type_to_analyse]
-          
-          
-          
-          pca <- prcomp(temp, retx = T, scale=T)  # Make the PCA
-          pca.results <- cbind(line=lines, data.frame(pca$x)[,])
-          
-          # reporter <- 
-          # 
-          # 
-          # temp$line <- factor(temp$line) # To avoid empty group if they occur
-          # fit <- lda(line ~ ., data=temp, CV=F)
-          # 
-          # 
-          # 
-          # 
-          # 
-          # # Get the accuracy of the prediction
-          # fit.p <- predict(fit, newdata = temp[,-1])
-          # ct <- table(temp$line, fit.p$class)
-          # #diag(prop.table(ct, 1))
-          # #sum(diag(prop.table(ct)))
-          # 
-          # #gene <- read.csv("~/Desktop/GeneExpression.txt", sep="\t")
-          # if(!is.null(gene)){
-          #   prediction <- predict(fit, newdata=gene[,-1])$class
-          #   gene <- cbind(gene, prediction)
-          # }
-          # 
-          # reporter <- cbind(reporter, fit.p$x)
-        # }
-        
-          
-          
-        # save(gene, file="www/example/gene.RData")
-        # save(fit, file="www/example/fit.RData")
-        # save(reporter, file="www/example/rep.RData")
-        # save(rep.melt, file="www/example/repmelt.RData")
-        # save(tissues, file="www/example/tissues.RData")
-        # save(aov.results, file="www/example/aov.RData")
-        # save(maov.results, file="www/example/maov.RData")
-        # save(p.list, file="www/example/plist.RData")
-        # save(rep.agg.short, file="www/example/repaggshort.RData")
-        
-        
-          rs$reporter <- reporter
+          # rs$reporter <- reporter
           rs$rep.mean <- rep.mean
           rs$gene <- gene
           #rs$lda.fit <- fit
@@ -427,6 +349,12 @@ shinyServer(
       sel <- input$to_plot
       reps <- na.omit(unique(factor(rs$reporter$line)))
       reps1 <- reps[-match(input$ref_reps, reps)]
+      
+      if(sel %in% reps){
+        message(">>>>>>>>>>>>")
+        message(sel)
+        message(">>>>>>>>>>>>")
+      }else{ sel <- reps1[1]}
 
       # Genotype check box
       s_options <- list()
@@ -450,6 +378,9 @@ shinyServer(
       sel <- input$ref_reps
       reps <- na.omit(unique(factor(rs$reporter$line)))
       reps2 <- reps[-match(input$to_plot, reps)]
+      
+      if(sel %in% reps){
+      }else{ sel <- reps2[1]}
       
       # Genotype list
       s_options <- list()

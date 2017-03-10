@@ -28,8 +28,8 @@
 ###### Load libraries
 ##################################################################
 
-packages <- c("ggplot2", "plyr", "gridExtra", "MASS", 
-              "reshape2", "RColorBrewer", "readxl", 
+packages <- c("ggplot2", "plyr", "gridExtra", "MASS",
+              "reshape2", "RColorBrewer", "readxl",
               "lattice", "plotly", "gridExtra", "xml2", "data.table")
 for(p in packages){
   if (!require(p,character.only = TRUE)){
@@ -37,12 +37,25 @@ for(p in packages){
     if(!require(p,character.only = TRUE)) stop("Package not found")
   }
 }
-
+# library("ggplot2")
+# library("plyr")
+# library("gridExtra")
+# library("MASS")
+# library("reshape2")
+# library("RColorBrewer")
+# library("readxl")
+# library("lattice")
+# library("plotly")
+# library("gridExtra")
+# library("xml2")
+# library("data.table")
 
 ##################################################################
 ###### Options
 ##################################################################
+cscale <- c("#ffffcc", "#a1dab4","#41b6c4", "#2c7fb8", "#253494")
 
+options(shiny.trace=F)
 
 DFLT_action_enable_scrolling <- TRUE
 DFLT_scrolling_y_limit <- 200
