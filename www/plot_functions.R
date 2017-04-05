@@ -33,41 +33,33 @@
 plotRootKey <- function(root){
   
   #Initialize the root map
-  root$tissue[root$tissue == "borders"] = NA
-  
-  pl <- ggplot() + coord_fixed() +
+  pl <- ggplot(root, aes(x=x, y=y)) +
+    geom_polygon(aes(fill=tissue, group=id), colour="black") +
+    coord_fixed()+
     theme_classic() +
-    theme(
-      axis.line = element_blank(), 
-      axis.text.x = element_blank(),
-      axis.text.y = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title.x = element_blank(),
-      axis.title.y = element_blank(),
-      plot.title = element_text(hjust = 0.5, size=18, face="bold"),
-      #legend.position = "none",
-      legend.text = element_text(size=18),
-      legend.title = element_text(size=20),
-      panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
-      plot.background = element_rect(fill = "transparent",colour = NA)) 
+    theme(panel.border = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_blank(),
+          axis.text = element_blank(),
+          axis.title = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, size=18, face="bold"))
   
-  
-  plot <- pl + geom_raster(data = root, aes(y, -x, fill = factor(tissue)), interpolate = T) + 
-    scale_fill_brewer(palette = "Set1", na.value = "black")
-  
-  plot
+  pl
 }
 
 
 ##### PLOT THE ROOT REPORTER IMAGE
 
 plotRootReporters <- function(reps, to_plot, root, rep.aov, 
-                              rep.melt, rep.agg.short, sig, show){
+                              rep.melt, rep.agg.short, sig, show, range){
   
   #Initialize the root map
   
-  root$value <- NA
-  root$value[root$tissue != "borders"] = 1
+  root1 <- root
+  root2 <- root
+  root3 <- root
   
   n1 <- length(unique(rep.melt$root[rep.melt$line == reps]))
   n2 <- length(unique(rep.melt$root[rep.melt$line == to_plot]))
@@ -76,14 +68,14 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
   temp1$value <- range01(temp1$value)
   for(t in unique(as.character(temp1$variable))){
-    root$value[root$id == 1 & root$tissue == t] <- temp1$value[temp1$variable == t]
+    root1$value[root1$tissue == t] <- temp1$value[temp1$variable == t]
   }
   
   # Get the value to plot for the comparison line
   temp2 <- rep.agg.short[rep.agg.short$line == to_plot ,]
   temp2$value <- range01(temp2$value)
   for(t in unique(as.character(temp2$variable))){
-    root$value[root$id == 2 & root$tissue == t] <- temp2$value[temp1$variable == t]
+    root2$value[root2$tissue == t] <- temp2$value[temp1$variable == t]
   } 
   
   
@@ -97,16 +89,11 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   temp <- merge(temp, pvals, by.x="variable", by.y = "tissue")  
   temp <- temp[as.numeric(temp$pvalue) < 0.05,]
   
-  root$value[root$id == 3 & root$tissue != "borders"] <- 0
   for(t in unique(as.character(temp$variable))){
-    root$value[root$id == 3 & root$tissue == t] <- temp$value[temp$variable == t]
+    root3$value[root3$tissue == t] <- temp$value[temp$variable == t]
   }             
   
-  root1 <- root[root$id == 1,]
-  root2 <- root[root$id == 2,]
-  root3 <- root[root$id == 3,]
-  
-  rg <- range(root1$value, root2$value, na.rm = T)
+  rg <- range
   # rg <- range(0,1)
   
   pl <- ggplot() + coord_fixed() +
@@ -123,28 +110,30 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
       legend.text = element_text(size=14),
       legend.title = element_text(size=15),
       panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
-      plot.background = element_rect(fill = "transparent",colour = NA)) 
+      plot.background = element_rect(fill = "transparent",colour = NA))  + 
+    geom_rect(aes(ymin=-200, ymax=-300, xmin=min(root$x), xmax=max(root$x)+10), fill="white")
   
   
-  plot1 <- pl + geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
+  plot1 <- pl + geom_polygon(data = root1, aes(x=x, y=y, fill=value, group=id), colour="black") +
+    # geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=cscale,na.value = "black", limits=rg) + 
+    scale_fill_gradientn(colours=cscale,na.value = "grey", limits=rg) + 
     ggtitle(paste0(reps, "\n n = ",n1))
-  
-  plot2 <- pl + geom_raster(data = root2, aes(y, -x, fill = value), interpolate = T) + 
+
+  plot2 <- pl + geom_polygon(data = root2, aes(x=x, y=y, fill=value, group=id), colour="black") +
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours= cscale,na.value = "black", limits=rg) +     
-    ggtitle(paste0(to_plot, "\n n = ",n2)) 
-  
+    scale_fill_gradientn(colours= cscale,na.value = "grey", limits=rg) +     
+    ggtitle(paste0(to_plot, "\n n = ",n2))   
+
   if(show){
     lim <- c(-max(abs(range(root3$value, na.rm = T))), max(abs(range(root3$value, na.rm = T))))
     
     ti <- "SIGNIFICANT\nDIFFERENCES"
     if(sig) ti <- "SIGNIFICANT\nDIFFERENCES\n***"
-    plot3 <- pl + geom_raster(data = root3, aes(y, -x, fill = value), interpolate = T) + 
-      scale_fill_gradientn(colours=c("#EF7C09", "#FFFFFF","#51A9F9"), limits = lim, na.value = "black") + 
-      ggtitle(ti)
-    
+    plot3 <- pl + geom_polygon(data = root3, aes(x=x, y=y, fill=value, group=id), colour="black") +
+      scale_fill_gradientn(colours=c("#EF7C09", "#FFFFFF","#51A9F9"), limits = lim, na.value = "grey") + 
+      ggtitle(ti)  
+
     plot <- grid.arrange(plot1, plot2, plot3, ncol=3)
   }else{
     plot <- grid.arrange(plot1, plot2, ncol=2)
@@ -159,12 +148,12 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
 
 ##### PLOT THE ROOT GENE IMAGE
 
-plotRootGene <- function(reps, gene, root, rep.agg.short){
+plotRootGene <- function(reps, gene, root, rep.agg.short, range){
   
   #Initialize the root map
 
-  root$value <- NA
-  root$value[root$tissue != "borders"] = 1
+  root1 <- root
+  root2 <- root
 
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
@@ -172,7 +161,7 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
   name <- temp1$line[1]
   match <- temp1$match[1]
   for(t in unique(as.character(temp1$variable))){
-    root$value[root$id == 1 & root$tissue == t] <- temp1$value[temp1$variable == t]
+    root1$value[root1$tissue == t] <- temp1$value[temp1$variable == t]
   }
   
   # Get the value to plot for the comparison line
@@ -180,14 +169,10 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
   temp <- ddply(temp, .(Gene_ID, variable), summarise, value=mean(value))#melt(temp, id.vars = c("Gene_ID"))  
   temp$value <- range01(temp$value)
   for(t in unique(as.character(temp$variable))){
-    root$value[root$id == 2 & root$tissue == t] <- temp$value[temp$variable == t]
+    root2$value[root2$tissue == t] <- temp$value[temp$variable == t]
   }   
-    
-  root1 <- root[root$id == 1,]
-  root2 <- root[root$id == 2,]
 
-  rg <- range(root1$value, root2$value, na.rm = T)
-  rg <- range(0,1)
+  rg <- range
   
   pl <- ggplot() + coord_fixed() +
     theme_classic() +
@@ -205,16 +190,15 @@ plotRootGene <- function(reps, gene, root, rep.agg.short){
       panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
       plot.background = element_rect(fill = "transparent",colour = NA)) 
   
-  
-  plot1 <- pl + geom_raster(data = root1, aes(y, -x, fill = value), interpolate = T) + 
+  plot1 <- pl + geom_polygon(data = root1, aes(x=x, y=y, fill=value, group=id), colour="black") +
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=cscale,na.value = "black", limits=rg) +     
-    ggtitle(name)
+    scale_fill_gradientn(colours=cscale,na.value = "grey", limits=rg) +     
+    ggtitle(name)  
   
-  plot2 <- pl + geom_raster(data = root2, aes(y, -x, fill = value), interpolate = T) + 
+  plot2 <- pl + geom_polygon(data = root2, aes(x=x, y=y, fill=value, group=id), colour="black") +
     # scale_fill_gradientn(colors = terrain.colors(7), na.value = "black", limits=rg) + 
-    scale_fill_gradientn(colours=cscale,na.value = "black", limits=rg) +     
-    ggtitle(match) 
+    scale_fill_gradientn(colours=cscale,na.value = "grey", limits=rg) +     
+    ggtitle(match)  
   
   plot <- grid.arrange(plot1, plot2, ncol=2)
   
@@ -230,12 +214,21 @@ barplot_comp_1 <- function(reps, gene, rep.agg){
   
   temp2 <-rep.agg[rep.agg$line == reps,]
   match <- temp2$match[1]
-  temp <- gene[gene$Gene_ID == match,]
+  temp <- gene[gene$Gene_ID == match,-1]
   temp2 <- temp2[,-c(2, 5)]
   colnames(temp) <- colnames(temp2)
   temp <- rbind(temp, temp2)
   
-  plot1 <- ggplot(temp, aes(variable, value, fill=line)) + 
+  temp$variable <- as.character(temp$variable)
+  temp$variable[temp$variable == "columella"] <- "01 - Columella"
+  temp$variable[temp$variable == "lateralrootcap"] <- "02 - Lateral root cap"
+  temp$variable[temp$variable == "QC"] <- "03 - Quiecent center"
+  temp$variable[temp$variable == "epidermis"] <- "04 - Epidermis"
+  temp$variable[temp$variable == "cortex"] <- "05 - Cortex"
+  temp$variable[temp$variable == "endodermis"] <- "06 - Endodermis"
+  temp$variable[temp$variable == "stele"] <- "07 - Stele"  
+  
+  plot1 <- ggplot(temp, aes(factor(variable), value, fill=line)) + 
     # geom_bar(stat = "identity", position=position_dodge(width=0.9), width=0.8) + 
     geom_boxplot( width=0.8, size=1) + 
     theme_bw() + 
@@ -255,19 +248,90 @@ barplot_comp <- function(reps, to_plot, data){
 
   temp <- data[data$line == reps | data$line == to_plot,]
   
-  plot1 <- ggplot(temp, aes(variable, value, colour=line)) + 
-    geom_boxplot( width=0.8, size=1.5) + 
+  temp$variable <- as.character(temp$variable)
+  temp$variable[temp$variable == "columella"] <- "01 - Columella"
+  temp$variable[temp$variable == "lateralrootcap"] <- "02 - Lateral root cap"
+  temp$variable[temp$variable == "QC"] <- "03 - Quiecent center"
+  temp$variable[temp$variable == "epidermis"] <- "04 - Epidermis"
+  temp$variable[temp$variable == "cortex"] <- "05 - Cortex"
+  temp$variable[temp$variable == "endodermis"] <- "06 - Endodermis"
+  temp$variable[temp$variable == "stele"] <- "07 - Stele"
+  
+  plot1 <- ggplot(temp, aes(factor(variable), value, fill=line)) + 
+    geom_boxplot( width=0.8, size=1) + 
     theme_bw() + 
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size=14),
       axis.text = element_text(size=20),
       axis.title =  element_text(size=20)
     ) +
+    scale_fill_manual(values = c("white", "grey")) +
     xlab("") + ylab("Relative expression value")
 
     plot1
   
 }
+
+
+fitPlot <- function(dat, p, p1){
+  
+  temp2 <- ddply(dat, .(line, variable), summarise, avg=mean(value), sd=sd(value))
+  x <- temp2$avg[temp2$line == p]; y <- temp2$avg[temp2$line == p1] 
+  x_sd <- temp2$sd[temp2$line == p]; y_sd <- temp2$sd[temp2$line == p1] 
+  dat <- data.frame(x, y, x_sd, y_sd, cell_type=temp2$variable[temp2$line == p])
+  lim_x <- aes(xmax = x + x_sd, xmin=x - x_sd)
+  lim_y <- aes(ymax = y + y_sd, ymin=y - y_sd)
+  
+  print(lim_y)
+  
+  plot1 <- ggplot(dat, aes(x, y, colour=cell_type)) + 
+    geom_point(size=2) + 
+    geom_errorbar(lim_y, width=0.1, size=1.2) +
+    geom_errorbarh(lim_x, height=0.1, size=1.2) +
+    theme_bw() + 
+    theme(
+      axis.text = element_text(size=15),
+      axis.title =  element_text(size=15),
+      legend.text = element_text(size=15)
+    ) + 
+    geom_abline(slope = 1, intercept = 0, lty=3) +
+    xlab(p) + ylab(p1)
+  
+  plot1
+  
+}
+
+fitPlot_1 <- function(dat, dat1, p, p1){
+
+  temp1 <- ddply(dat, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+  temp2 <- ddply(dat1, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+  temp <- merge(temp1, temp2, by="variable")
+  x <- temp$avg.x 
+  y <- temp$avg.y
+  x_sd <- temp$sd.x
+  y_sd <- temp$sd.y
+  dat <- data.frame(x, y, x_sd, y_sd, cell_type=temp$variable)
+  lim_x <- aes(xmax = x + x_sd, xmin=x - x_sd)
+  lim_y <- aes(ymax = y + y_sd, ymin=y - y_sd)
+  
+  plot1 <- ggplot(dat, aes(x, y, colour=cell_type)) + 
+    geom_point(size=2) + 
+    geom_errorbar(lim_y, width=0.1, size=1.2) +
+    geom_errorbarh(lim_x, height=0.1, size=1.2) +
+    theme_bw() + 
+    theme(
+      axis.text = element_text(size=15),
+      axis.title =  element_text(size=15),
+      legend.text = element_text(size=15)
+    ) + 
+    geom_abline(slope = 1, intercept = 0, lty=3) +
+    xlab(p) + ylab(p1)
+  
+  plot1
+  
+}
+
+
 
 
 
@@ -310,30 +374,36 @@ heatmap <- function(rep.maov){
 }
 
 
-heatmap_dist <- function(gene.dist){
+
+heatmap_fit <- function(rep.maov, diff=F){
   
-  dat <- as.data.frame(t(gene.dist))
+  dat <- as.data.frame(rep.maov)
   dat$line_1 <- rownames(dat)
   dat <- melt(dat, id.vars = c("line_1"))
   
   dat$line_2 <- dat$variable
-  dat$distance <- dat$value
-  ## Example data
-  plot1 <- ggplot(dat, aes(line_1, line_2, z= distance)) + 
-    geom_tile(aes(fill = distance)) + 
+  dat$p_value <- dat$value
+  
+  plot1 <- ggplot(dat, aes(line_1, line_2, z= p_value)) + 
+    geom_tile(aes(fill = p_value)) + 
     theme_bw() + 
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size=15),
-      axis.text = element_text(size=15),
+      axis.text.x = element_text(angle = 45, hjust = 1, size=12),
+      axis.text = element_text(size=12),
       legend.text = element_text(size=10),
       legend.title = element_text(size=10)) +
-    scale_fill_distiller(palette="Spectral")+
-    #scale_fill_gradient(low="blue", high="white", space="Lab")   +
-    xlab("") + ylab("")  +
+    # scale_fill_distiller(palette="Spectral")+
+    xlab("") + ylab("") + 
     coord_fixed()
+  
+  if(diff) plot1 <- plot1 + scale_fill_gradientn(colours=c("#EF7C09", "#FFFFFF","#51A9F9"), limits = c(-1,1), na.value = "grey")
+  if(!diff) plot1 <- plot1 + scale_fill_gradientn(colours=cscale, name="r-squared values")
   
   plot1
 }
+
+
+  
 
 
 ## LDA PLOT #############################

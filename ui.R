@@ -48,13 +48,14 @@ shinyUI(fluidPage(
                helpText("Define which method to use to aggregate the data at the line x root x cell type level")
           ),
           tabPanel("Sample data",
-              checkboxInput('use_example', "Use example data", value = T, width = NULL),
-              selectInput("reporters", label = "1. Select reporter dataset", choices = c("Load datafile")), # updated with the datafile
+              checkboxInput('use_example', "Use example data", value = F, width = NULL),
+              selectInput("reporters", label = "Select reporter dataset", choices = c("Load datafile")), # updated with the datafile
               htmlOutput("littTitle"),
               htmlOutput("littAuth"),
               htmlOutput("littRef"),
               htmlOutput("doi"),
-              selectInput("microarrays", label = "1. Select microarray dataset", choices = c("Load datafile")),
+              tags$hr(),
+              selectInput("microarrays", label = "Select microarray dataset", choices = c("Load datafile")),
               htmlOutput("littTitle1"),
               htmlOutput("littAuth1"),
               htmlOutput("littRef1"),
@@ -76,7 +77,7 @@ shinyUI(fluidPage(
     column(9,
            tabsetPanel( 
              tabPanel("Compare reporters expressions",
-                      tags$hr(),                                  
+                      tags$hr(),
                       fluidRow(
                         
                         column(6,
@@ -91,13 +92,18 @@ shinyUI(fluidPage(
                                         checkboxInput('show_diff', "", value = FALSE, width = NULL)
                                  )
                                ),
-                               plotOutput("plotRoot", height="800px", width="100%")
+                               plotOutput("plotRoot", height="800px", width="100%"),
+                               sliderInput("display_range", "Display range:",min = 0, max = 1, value = c(0,1))
+                               
                         ),
                         column(6,
                                h4("Overall difference between the selected reporter lines"),
                                helpText("Results from the MANOVA analysis, revealing if there is a global differences between both lines"),
                                textOutput("line_comp_text"),
                                textOutput("line_comp_pval"),
+                               textOutput("line_comp_fit"),
+                               textOutput("line_comp_pears"),
+                               textOutput("line_comp_spear"),
                                tags$hr(),
                                h4("Single differences between the root types of the selected reporter lines"),
                                helpText("It should be noted, that even if two lines are not globally different, they might have local, single cell-type differences."),
@@ -110,7 +116,12 @@ shinyUI(fluidPage(
                                           helpText("Normalized level of fluorescence for the different cell layers"),
                                           value=1
                                           ),
-                                 
+                                 tabPanel("Regression plot",
+                                          plotOutput("fitPlot"),
+                                          tags$hr(),
+                                          helpText("Comparison of the fluorescence elvels for both reporter lines. The dotted represents the 1:1 diagonal."),
+                                          value=1
+                                          ),                                 
                                  tabPanel("PCA plot",
                                           plotlyOutput("ldaPlot"),
                                           tags$hr(),
@@ -119,15 +130,6 @@ shinyUI(fluidPage(
                                                    The plotted lines are shown in color, while the other lines are displayed in grey"),
                                           value=1
                                           ),
-
-                                 # tabPanel("MAOV results",
-                                 #          tags$hr(),
-                                 #          helpText("This table contains all the comparison between the different reporter lines, using MANOVA analyses"),
-                                 #          downloadButton('download_moav', 'Download table'),
-                                 #          tags$hr(),
-                                 #          tableOutput('maov_results'),
-                                 #          value=2
-                                 #  ),
 
                                  tabPanel("AOV results",
                                           tags$hr(),
@@ -149,12 +151,33 @@ shinyUI(fluidPage(
 
                                  
 
-          tabPanel("MOAV Summary",
-                   plotOutput("heatmap", width = "100%", height="800px"),
-                   tags$hr(),
-                   helpText("Heatmap of the MANOVA results between the different lines.
-                                              For each line combinaison, a MANOVA analysis was performed in order to determine if there
-                                              expression patterns were different.")         
+          tabPanel("Correlations heatmaps",
+                   tabsetPanel(
+                     tabPanel("MANOVA",
+                       plotOutput("heatmap", width = "100%", height="800px"),
+                       tags$hr(),
+                       helpText("Heatmap of the MANOVA results between the different lines.
+                                                  For each line combinaison, a MANOVA analysis was performed in order to determine if there
+                                                  expression patterns were different.")         
+                     ),
+                    tabPanel("Linear regression",
+                      plotOutput("heatmap_fit", width = "100%", height="800px"),
+                      tags$hr(),
+                      helpText("Heatmap of the r-squared results between the different lines.
+                               For each line combinaison, a linear regression analysis was performed in order to determine if there
+                               expression patterns were different.")                                     
+                    ),
+                    tabPanel("Pearson correlations",
+                             plotOutput("heatmap_pearson", width = "100%", height="800px"),
+                             tags$hr(),
+                             helpText("Heatmap of the pearson correlation results between the different lines.")                                     
+                    ),
+                    tabPanel("Spearman correlations",
+                             plotOutput("heatmap_spearman", width = "100%", height="800px"),
+                             tags$hr(),
+                             helpText("Heatmap of the spearman correlation results between the different lines.")                                     
+                             )
+                   )
           ),
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -163,7 +186,6 @@ shinyUI(fluidPage(
 
              
             tabPanel("Compare Reporter to Gene",
-                     helpText("Expression pattern in the root"),
                      tags$hr(),
                      fluidRow(
                        column(6,
@@ -172,9 +194,15 @@ shinyUI(fluidPage(
                                    selectInput("ref_reps_2", label = "Reporter", choices = c("Load datafile"))
                             )
                           ),
-                          plotOutput("plotRootGene", height="800px", width="100%")
+                          plotOutput("plotRootGene", height="800px", width="100%"),
+                          sliderInput("display_range_1", "Display range:",min = 0, max = 1, value = c(0,1))
+                          
                        ),
                        column(6,
+                              h4("Overall difference between the selected reporter lines"),
+                              textOutput("gene_comp_fit"),
+                              textOutput("gene_comp_pears"),
+                              textOutput("gene_comp_spear"),                              
                               h4("Single differences between the root types of the selected reporter lines"),
                               textOutput("gene_comp"),
                               tags$hr(),
@@ -186,7 +214,13 @@ shinyUI(fluidPage(
                                                   Linear Discriminant Analysis done on the reporter lines dataset.
                                                   The plotted lines are shown in color, while the other lines are displayed in grey"),
                                          value=1
-                                         )                        
+                                         ),
+                                tabPanel("Regression plot",
+                                         plotOutput("fitPlot_1"),
+                                         tags$hr(),
+                                         helpText("Comparison of the fluorescence and experession levels for the selected gene.The dotted represents the 1:1 diagonal."),
+                                         value=1
+                                )                        
                                 )
                               ),
                        width="100%",
@@ -199,7 +233,6 @@ shinyUI(fluidPage(
 #------------------------------------------------------------------
 
               tabPanel("Download processed data",
-                  tags$hr(),
                   tabsetPanel(
                      
                      tabPanel("MAOV results",
@@ -209,6 +242,30 @@ shinyUI(fluidPage(
                               tableOutput('maov_results_all'),
                               value=2
                      ),
+                     
+                     tabPanel("Regression results",
+                              helpText("This table contains all the comparison between the different reporter lines, using a linear regression"),
+                              downloadButton('download_fit_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('fit_results_all'),
+                              value=2
+                     ), 
+                     
+                     tabPanel("Pearson correlation results",
+                              helpText("This table contains all the comparison between the different reporter lines, using Pearson correlation"),
+                              downloadButton('download_pears_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('pears_results_all'),
+                              value=2
+                     ), 
+                     
+                     tabPanel("Spearman correlation results",
+                              helpText("This table contains all the comparison between the different reporter lines, using Spearman correlation"),
+                              downloadButton('download_spear_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('spear_results_all'),
+                              value=2
+                     ),                      
                      
                      tabPanel("AOV results",
                               helpText("This table contains all the comparison between the different reporter lines, for each cell type, using 2-way ANOVA analyses"),
@@ -224,7 +281,15 @@ shinyUI(fluidPage(
                               tags$hr(),
                               tableOutput('aov_gene_results_all'),
                               value=2
-                     )                     
+                     ),    
+                     
+                     tabPanel("Gene correlation results",
+                              helpText("This table contains all the comparison between the different reporter lines and their corresponding gene, using linear regression, Pearson correlation and Spearman correlation"),
+                              downloadButton('download_fit_gene_all', 'Download full table'),
+                              tags$hr(),
+                              tableOutput('fit_gene_results_all'),
+                              value=2
+                     )                         
                    ),                       
                    value=3
               ),

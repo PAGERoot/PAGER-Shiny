@@ -1,0 +1,6 @@
+load("/Users/g.lobet/OneDrive - UCL/03_research/0_page-root/PAGER-Shiny/www/example/maov.RData")
+load("/Users/g.lobet/OneDrive - UCL/03_research/0_page-root/PAGER-Shiny/www/example/plist.RData")
+load("/Users/g.lobet/OneDrive - UCL/03_research/0_page-root/PAGER-Shiny/www/example/rep.RData")
+load("/Users/g.lobet/OneDrive - UCL/03_research/0_page-root/PAGER-Shiny/www/example/repaggshort.RData")
+load("/Users/g.lobet/OneDrive - UCL/03_research/0_page-root/PAGER-Shiny/www/example/repmelt.RData")
+load("/Users/g.lobet/OneDrive - UCL/03_research/0_page-root/PAGER-Shiny/www/example/tissues.RData")

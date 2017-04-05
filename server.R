@@ -42,9 +42,10 @@ gene <<- NULL
 shinyServer(
   function(input, output, clientData, session) {
 
-    load("www/example/root.RData")
-    root$value[root$tissue != "borders"] = 1
-    root$value[root$tissue == "borders"] = NA
+    # load("www/example/root.RData")
+    root <- fread("www/example/root.csv")
+    remove <- c(65,146,116,416,443,454,490)
+    root <- root[!(root$id %in% remove),]
     rs <- reactiveValues(reporter = NULL, 
                          gene = NULL,
                          lda.fit = NULL,
@@ -52,7 +53,11 @@ shinyServer(
                          tissues = NULL,
                          rep.aov = NULL,
                          rep.aov.gene = NULL,
+                         rep.fit.gene = NULL,
                          rep.maov = NULL,
+                         rep.fit = NULL,
+                         rep.pearson = NULL,
+                         rep.spearman = NULL,
                          p.list= NULL,
                          gene.list = NULL,
                          rep.agg.short = NULL,
@@ -95,9 +100,9 @@ shinyServer(
         
         incProgress(1/4, detail = "Loading the data")
 
-         #gene <- fread("www/datasets/microarrays/all_genes.csv")
+         # gene <- fread("www/datasets/microarrays/all_genes.csv")
          #temp <- read_rsml("www/datasets/reporters/experession_ji_young.rsml")
-         #temp <- read_rsml("www/datasets/reporters/experession_full.rsml")
+         # temp <- read_rsml("www/datasets/reporters/experession_full.rsml")
          
           # Load two datafiles, for the gene and the reporters
 
@@ -184,6 +189,18 @@ shinyServer(
             maov.results <<- matrix(NA, ncol = l1, nrow = l1) 
             colnames(maov.results) <- p.list 
             rownames(maov.results) <- p.list
+            
+            fit.results <<- matrix(NA, ncol = l1, nrow = l1) 
+            colnames(fit.results) <- p.list 
+            rownames(fit.results) <- p.list
+            
+            pearson.results <<- matrix(NA, ncol = l1, nrow = l1) 
+            colnames(pearson.results) <- p.list 
+            rownames(pearson.results) <- p.list
+            
+            spearman.results <<- matrix(NA, ncol = l1, nrow = l1) 
+            colnames(spearman.results) <- p.list 
+            rownames(spearman.results) <- p.list
               
             i <- 1
             k <- 1
@@ -196,8 +213,8 @@ shinyServer(
                   temp <- reporter[reporter$line == p | reporter$line == p1,]
                   
                   # Get the ines sleected by the user
-                  ts <- c("columella","cortex","endodermis","epidermis","lateralrootcap","QC","stele")
-                  # ts <- input$type_to_analyse
+                  # ts <- c("columella","cortex","endodermis","epidermis","lateralrootcap","QC","stele")
+                  ts <- input$type_to_analyse
                   # This is a very ugly way to do this; 
                   for(t in c(1:length(ts))) temp[[paste0("V",t)]] <- temp[[ts[t]]]
                   if(length(ts) == 1) fit <- manova(cbind(V1) ~ line,  temp)
@@ -217,6 +234,21 @@ shinyServer(
                   })
                   maov.results[i,j] <- maov.results[j,i]
   
+                  
+                  temp2 <- melt(temp, id=c("line", "root"))
+                  temp2 <- ddply(temp2, .(line, variable), summarise, value=mean(value))
+                  x <- temp2$value[temp2$line == p]; y <- temp2$value[temp2$line == p1] 
+                  
+                  plot(x, y)
+                  fit.results[j,i] <- summary(lm(y ~ x))$r.squared
+                  fit.results[i,j] <- fit.results[j,i]
+                  
+                  pearson.results[j,i] <- rcorr(x, y, type = "pearson")[[1]][1,2]
+                  pearson.results[i,j] <- pearson.results[j,i]
+                  
+                  spearman.results[j,i] <- rcorr(x, y, type = "spearman")[[1]][1,2]
+                  spearman.results[i,j] <- spearman.results[j,i]
+                  
                   # Reponse for each tissue
                   for(ti in tissues){
                     temp <- rep.melt[rep.melt$line == p | rep.melt$line == p1,]
@@ -244,6 +276,8 @@ shinyServer(
             incProgress(1/5, detail = "Matching the genes")
             
             aov.results.gene <- NULL
+            fit.results.gene <- NULL
+            
             for(p in p.list){
               ge <- strsplit(p, "_")[[1]]
               ge <- ge[grepl("AT[1-9]G", ge)] # find the corresping gene
@@ -265,6 +299,16 @@ shinyServer(
                   fit <- aov(value ~ line, data=tmp)
                   aov.results.gene <- rbind(aov.results.gene, data.frame(line=p, gene=ge, tissue=t, pvalue = round(summary(fit)[[1]][1,5], 5)))
                 }
+                
+                temp <- ddply(temp, .(line, variable), summarise, value=mean(value))
+                temp2 <- ddply(temp2, .(Gene_ID, variable), summarise, value=mean(value))
+                temp <- merge(temp, temp2, by.x="variable", by.y="variable")
+                fit.result <- summary(lm(temp$value.y ~ temp$value.x))$r.squared
+                pearson.result <- rcorr(temp$value.x, temp$value.y, type = "pearson")[[1]][1,2]
+                spearman.result <- rcorr(temp$value.x, temp$value.y, type = "spearman")[[1]][1,2]    
+                
+                fit.results.gene <- rbind(fit.results.gene, data.frame(line=p, gene=ge, r2=fit.result, pearson=pearson.result, spearman = spearman.result))
+                
               }
             }
             
@@ -302,7 +346,11 @@ shinyServer(
           rs$tissues <- tissues
           rs$rep.aov <- aov.results
           rs$rep.aov.gene <- aov.results.gene
+          rs$rep.fit.gene <- fit.results.gene
           rs$rep.maov <- maov.results
+          rs$rep.fit <- fit.results
+          rs$rep.pearson <- pearson.results
+          rs$rep.spearman <- spearman.results
           rs$p.list <- p.list
           rs$rep.agg.short <- rep.agg.short
           # rs$gene.dist <- dist.results
@@ -408,7 +456,41 @@ shinyServer(
 # ----------------------------------------------------------------------------------
 # ------ PLOT THE DATA     ---------------------------------------------------------
 # ----------------------------------------------------------------------------------
+
     
+## FITPLOT #############################
+    
+    output$fitPlot <- renderPlot({
+      if(is.null(rs$reporter)){return()}
+      
+      temp <- rs$reporter[rs$reporter$line == input$ref_reps | rs$reporter$line == input$to_plot,]
+      temp2 <- melt(temp, id=c("line", "root"))
+      
+      print(fitPlot(dat = temp2,
+                           p = input$ref_reps, 
+                           p1 = input$to_plot
+      ))
+    })
+    
+## FITPLOT GENE #############################
+    
+    output$fitPlot_1 <- renderPlot({
+      if(is.null(rs$gene)){return()}
+      
+      temp2 <- rs$rep.melt[rs$rep.melt$line == input$ref_reps_2,]
+      match <- temp2$match[1]
+      temp <- rs$gene[rs$gene$Gene_ID == match,]
+      # temp2 <- temp2[,-c(2, 5)]
+      # colnames(temp) <- colnames(temp2)
+      # temp <- rbind(temp, temp2)
+      
+      print(fitPlot_1(dat = temp, dat1 = temp2,
+                    p = input$ref_reps, 
+                    p1 = match
+      ))
+    })    
+    
+        
 
 ## BARPLOT #############################
     
@@ -431,7 +513,7 @@ shinyServer(
 ## PLOT THE ROOT #############################
     
     output$plotRootKey <- renderPlot({
-      print(plotRootKey(rs$root[rs$root$id == 1,]))
+      print(plotRootKey(rs$root))
     }) 
 
     
@@ -446,7 +528,8 @@ shinyServer(
                               rep.melt = rs$rep.melt, 
                               rep.agg.short = rs$rep.agg.short,
                               sig = rs$rep.maov[input$ref_reps, input$to_plot] < 0.05,
-                              input$show_diff))
+                              input$show_diff,
+                              range = input$display_range))
     }) 
     
 ## PLOT THE ROOT WITH THE GENE DATA  #############################
@@ -456,7 +539,8 @@ shinyServer(
       print(plotRootGene(reps = input$ref_reps_2, 
                          root = rs$root, 
                          gene = rs$gene,
-                         rep.agg.short = rs$rep.agg.short
+                         rep.agg.short = rs$rep.agg.short,
+                         range = input$display_range_1
                          ))
     })     
  
@@ -474,7 +558,30 @@ shinyServer(
     output$heatmap <- renderPlot({
       if(is.null(rs$rep.maov)){return()}
       print(heatmap(rs$rep.maov))
-    })   
+    }) 
+    
+    
+## PLOT THE HEATMAP OF THE REGRESSIONS ANALYSIS  
+    
+    output$heatmap_fit <- renderPlot({
+      if(is.null(rs$rep.maov)){return()}
+      print(heatmap_fit(rs$rep.fit))
+    }) 
+    
+    
+## PLOT THE HEATMAP OF THE PEARSON ANALYSIS  
+    
+    output$heatmap_spearman <- renderPlot({
+      if(is.null(rs$rep.spearman)){return()}
+      print(heatmap_fit(rs$rep.spearman, diff=T))
+    })     
+    
+## PLOT THE HEATMAP OF THE PEARSON ANALYSIS  
+    
+    output$heatmap_pearson <- renderPlot({
+      if(is.null(rs$rep.pearson)){return()}
+      print(heatmap_fit(rs$rep.pearson, diff=T))
+    })     
  
     
 ## PLOT THE HEATMAP OF THE DISTANCE ANALYSIS  
@@ -525,7 +632,37 @@ shinyServer(
         }else{text <- paste0("p-value = ",round(sig, 3))}
       }
       return(HTML(text))
-    })    
+    })   
+    
+    output$line_comp_fit <- renderText({ 
+      if(is.null(rs$rep.fit) || grepl("Load", input$to_plot)){return()}
+      sig <- rs$rep.fit[input$ref_reps, input$to_plot]
+      text <- ""
+      if(!is.na(sig)){
+        text <- paste0("r-squared = ",round(sig, 4))
+      }
+      return(HTML(text))
+    })   
+    
+    output$line_comp_pears <- renderText({ 
+      if(is.null(rs$rep.pearson) || grepl("Load", input$to_plot)){return()}
+      sig <- rs$rep.pearson[input$ref_reps, input$to_plot]
+      text <- ""
+      if(!is.na(sig)){
+        text <- paste0("Pearson correlation = ",round(sig, 4))
+      }
+      return(HTML(text))
+    })   
+    
+    output$line_comp_spear <- renderText({ 
+      if(is.null(rs$rep.spearman) || grepl("Load", input$to_plot)){return()}
+      sig <- rs$rep.spearman[input$ref_reps, input$to_plot]
+      text <- ""
+      if(!is.na(sig)){
+        text <- paste0("Spearman correlation value = ",round(sig, 4))
+      }
+      return(HTML(text))
+    })       
 
     
     output$cell_comp <- renderText({ 
@@ -559,6 +696,35 @@ shinyServer(
       paste(temp$variable, "( p-val:", round(as.numeric(temp$pvalue), 4), ")", collapse=" || ")
     })    
     
+    output$gene_comp_fit <- renderText({ 
+      if(is.null(rs$rep.fit.gene) || grepl("Load", input$to_plot)){return()}
+      text <- ""
+      sig <- rs$rep.fit.gene[rs$rep.fit.gene$line == input$ref_reps_2, c("r2")]
+      if(!is.na(sig)){
+        text <- paste0("R-squared value = ",round(sig, 4))
+      }
+      return(HTML(text))
+    }) 
+    
+    output$gene_comp_pears <- renderText({ 
+      if(is.null(rs$rep.fit.gene) || grepl("Load", input$to_plot)){return()}
+      text <- ""
+      sig <- rs$rep.fit.gene[rs$rep.fit.gene$line == input$ref_reps_2, c("pearson")]
+      if(!is.na(sig)){
+        text <- paste0("Pearson correlation value = ",round(sig, 4))
+      }
+      return(HTML(text))
+    }) 
+    
+    output$gene_comp_spear <- renderText({ 
+      if(is.null(rs$rep.fit.gene) || grepl("Load", input$to_plot)){return()}
+      text <- ""
+      sig <- rs$rep.fit.gene[rs$rep.fit.gene$line == input$ref_reps_2, c("spearman")]
+      if(!is.na(sig)){
+        text <- paste0("Spearman correlation value = ",round(sig, 4))
+      }
+      return(HTML(text))
+    })     
     
     
     
@@ -657,6 +823,66 @@ shinyServer(
       }
     )    
     
+
+    output$fit_results_all <- renderTable({
+      if(is.null(rs$rep.fit)){return()}
+      dat <- as.data.frame(rs$rep.fit)
+      dat$line_1 <- rownames(dat)
+      dat <- melt(dat, id.vars = c("line_1"))
+      colnames(dat) <- c("line_1", "line_2", "r2")
+      dat
+    })    
+    output$download_fit_all <- downloadHandler(
+      filename = function() {"moav_results.csv"},
+      content = function(file) {
+        dat <- as.data.frame(rs$rep.fit)
+        dat$line_1 <- rownames(dat)
+        dat <- melt(dat, id.vars = c("line_1"))
+        colnames(dat) <- c("line_1", "line_2", "r2")
+        write.csv(dat, file)
+      }
+    )
+    
+    output$spear_results_all <- renderTable({
+      if(is.null(rs$rep.spearman)){return()}
+      dat <- as.data.frame(rs$rep.spearman)
+      dat$line_1 <- rownames(dat)
+      dat <- melt(dat, id.vars = c("line_1"))
+      colnames(dat) <- c("line_1", "line_2", "correlation")
+      dat
+    })    
+    output$download_spear_all <- downloadHandler(
+      filename = function() {"spearman_results.csv"},
+      content = function(file) {
+        dat <- as.data.frame(rs$rep.spearman)
+        dat$line_1 <- rownames(dat)
+        dat <- melt(dat, id.vars = c("line_1"))
+        colnames(dat) <- c("line_1", "line_2", "correlation")
+        write.csv(dat, file)
+      }
+    )
+    
+    
+    output$pears_results_all <- renderTable({
+      if(is.null(rs$rep.pearson)){return()}
+      dat <- as.data.frame(rs$rep.maov)
+      dat$line_1 <- rownames(dat)
+      dat <- melt(dat, id.vars = c("line_1"))
+      colnames(dat) <- c("line_1", "line_2", "correlation")
+      dat
+    })    
+    output$download_pears_all <- downloadHandler(
+      filename = function() {"pearson_results.csv"},
+      content = function(file) {
+        dat <- as.data.frame(rs$rep.pearson)
+        dat$line_1 <- rownames(dat)
+        dat <- melt(dat, id.vars = c("line_1"))
+        colnames(dat) <- c("line_1", "line_2", "correlation")
+        write.csv(dat, file)
+      }
+    )    
+    
+    
     # AOV RESULTS 
     
     output$aov_results <- renderTable({
@@ -697,7 +923,19 @@ shinyServer(
       content = function(file) {
         write.csv(rs$rep.aov.gene, file)
       }
-    )    
+    )  
+    
+    output$fit_gene_results_all <- renderTable({
+      if(is.null(rs$rep.aov.gene)){return()}
+      rs$rep.fit.gene
+    })    
+    output$download_fit_gene_all <- downloadHandler(
+      filename = function() {"fit_gene_results.csv"},
+      content = function(file) {
+        write.csv(rs$rep.fit.gene, file)
+      }
+    )      
+    
     
     
     # GENE DATA

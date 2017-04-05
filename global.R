@@ -28,27 +28,29 @@
 ###### Load libraries
 ##################################################################
 
-packages <- c("ggplot2", "plyr", "gridExtra", "MASS",
-              "reshape2", "RColorBrewer", "readxl",
-              "lattice", "plotly", "gridExtra", "xml2", "data.table")
-for(p in packages){
-  if (!require(p,character.only = TRUE)){
-    install.packages(p, dep=TRUE)
-    if(!require(p,character.only = TRUE)) stop("Package not found")
-  }
-}
-# library("ggplot2")
-# library("plyr")
-# library("gridExtra")
-# library("MASS")
-# library("reshape2")
-# library("RColorBrewer")
-# library("readxl")
-# library("lattice")
-# library("plotly")
-# library("gridExtra")
-# library("xml2")
-# library("data.table")
+# packages <- c("ggplot2", "plyr", "gridExtra", "MASS",
+#               "reshape2", "RColorBrewer", "readxl",
+#               "lattice", "plotly", "gridExtra", "xml2", "data.table")
+# for(p in packages){
+#   if (!require(p,character.only = TRUE)){
+#     install.packages(p, dep=TRUE)
+#     if(!require(p,character.only = TRUE)) stop("Package not found")
+#   }
+# }
+library("ggplot2")
+library("plyr")
+library("gridExtra")
+library("MASS")
+library("reshape2")
+library("RColorBrewer")
+library("readxl")
+library("lattice")
+library("plotly")
+library("gridExtra")
+library("xml2")
+library("data.table")
+library("Hmisc")
+
 
 ##################################################################
 ###### Options

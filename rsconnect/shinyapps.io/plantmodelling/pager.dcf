@@ -3,9 +3,9 @@ title: PAGER
 account: plantmodelling
 server: shinyapps.io
 appId: 162677
-bundleId: 741302
+bundleId: 776709
 url: https://plantmodelling.shinyapps.io/pager/
-when: 1489131993.32519
+when: 1491328422.01721
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|LICENCE|README.md|www/update_litterature_file.R|www/datasets/.DS_Store|www/datasets/microarrays/all_genes.csv|www/datasets/microarrays/GeneExpression.txt|www/datasets/reporters/experession_abs.rsml|www/datasets/reporters/experession_full.csv|www/datasets/reporters/experession_full.rsml|www/datasets/reporters/experession_ji_young.csv|www/datasets/reporters/experession_ji_young.rsml|www/datasets/reporters/experession_small.rsml
+ignoredFiles: .RData|LICENCE|README.md|www/mecha_data.RData|www/update_litterature_file.R|www/datasets/.DS_Store|www/datasets/microarrays/all_genes.csv|www/datasets/microarrays/GeneExpression.txt|www/datasets/reporters/experession_abs.rsml|www/datasets/reporters/experession_full.csv|www/datasets/reporters/experession_full.rsml|www/datasets/reporters/experession_ji_young.csv|www/datasets/reporters/experession_ji_young.rsml|www/datasets/reporters/experession_small.rsml|www/example/root.RData|www/test/maize_mecha_data.RData|www/test/millet_mecha_data.RData|www/test/millet_young_mecha_data.RData
