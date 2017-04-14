@@ -36,18 +36,18 @@ shinyUI(fluidPage(
   fluidRow(
     column(3, 
       h3("1. Load your data"),
-      # wellPanel(
-        tabsetPanel(
-          tabPanel("Your data",
-               fileInput('rep_file', 'Choose reporter expression data File', accept=c('text', '.rsml')),
-               fileInput('gene_file', 'Choose gene expression data File', accept=c('text/comma-separated-values', '.csv')),
-               h3("2. Choose the options"),
-               checkboxInput('use_absolute', "These are absolute values", value = FALSE, width = NULL),
-               selectInput("type_to_analyse", label="Cell types to use in the MANOVA", choices = c("Load datafile"), selected = NULL, multiple = TRUE),
-               selectInput("method", label = "Method used for the analysis", choices = c("Mean", "Median", "Min", "Max")), # updated with the datafile
-               helpText("Define which method to use to aggregate the data at the line x root x cell type level")
-          ),
-          tabPanel("Sample data",
+      wellPanel(
+      tabsetPanel(
+        tabPanel("Your data",
+             fileInput('rep_file', 'Choose reporter expression data File', accept=c('text', '.rsml')),
+             fileInput('gene_file', 'Choose gene expression data File', accept=c('text/comma-separated-values', '.csv')),
+             h3("2. Choose the options"),
+             checkboxInput('use_absolute', "These are absolute values", value = FALSE, width = NULL),
+             selectInput("type_to_analyse", label="Cell types to use in the MANOVA", choices = c("Load datafile"), selected = NULL, multiple = TRUE),
+             selectInput("method", label = "Method used for the analysis", choices = c("Mean", "Median", "Min", "Max")), # updated with the datafile
+             helpText("Define which method to use to aggregate the data at the line x root x cell type level")
+        ),
+        tabPanel("Sample data",
               checkboxInput('use_example', "Use example data", value = F, width = NULL),
               selectInput("reporters", label = "Select reporter dataset", choices = c("Load datafile")), # updated with the datafile
               htmlOutput("littTitle"),
@@ -59,9 +59,9 @@ shinyUI(fluidPage(
               htmlOutput("littTitle1"),
               htmlOutput("littAuth1"),
               htmlOutput("littRef1"),
-              htmlOutput("doi1")
+              htmlOutput("doi1")#,
           )# updated with the datafile
-        # )
+        )
       ),
       tags$hr(),
       actionButton(inputId = "load_data", label=" Launch PAGE-Root", icon("paper-plane"), 
@@ -82,6 +82,10 @@ shinyUI(fluidPage(
                         
                         column(6,
                                fluidRow(
+                                 selectInput("type_to_plot", label="Cell types to plot", choices = c("Load datafile"), 
+                                             selected = NULL, multiple = TRUE, width="100%")
+                               ),
+                               fluidRow(
                                  column(5,
                                         selectInput("ref_reps", label = NULL, choices = c("Load datafile"))
                                         ),
@@ -92,8 +96,10 @@ shinyUI(fluidPage(
                                         checkboxInput('show_diff', "", value = FALSE, width = NULL)
                                  )
                                ),
-                               plotOutput("plotRoot", height="800px", width="100%"),
-                               sliderInput("display_range", "Display range:",min = 0, max = 1, value = c(0,1))
+                               fluidRow(
+                                plotOutput("plotRoot", width="100%")#,
+                               )
+                               # sliderInput("display_range", "Display range:",min = 0, max = 1, value = c(0,1))
                                
                         ),
                         column(6,
@@ -192,10 +198,16 @@ shinyUI(fluidPage(
                           fluidRow(
                             column(5,
                                    selectInput("ref_reps_2", label = "Reporter", choices = c("Load datafile"))
+                            ),
+                            column(7,
+                                   selectInput("type_to_plot_2", label="Cell types to plot", choices = c("Load datafile"), 
+                                               selected = NULL, multiple = TRUE, width="100%")
                             )
                           ),
-                          plotOutput("plotRootGene", height="800px", width="100%"),
-                          sliderInput("display_range_1", "Display range:",min = 0, max = 1, value = c(0,1))
+                          fluidRow(
+                            plotOutput("plotRootGene", width="100%")
+                          )
+                          # sliderInput("display_range_1", "Display range:",min = 0, max = 1, value = c(0,1))
                           
                        ),
                        column(6,
@@ -243,29 +255,29 @@ shinyUI(fluidPage(
                               value=2
                      ),
                      
-                     tabPanel("Regression results",
-                              helpText("This table contains all the comparison between the different reporter lines, using a linear regression"),
+                     tabPanel("Correlation results",
+                              helpText("This table contains all the comparison between the different reporter lines, using a linear regression, Pearson and Spearman correlations"),
                               downloadButton('download_fit_all', 'Download full table'),
                               tags$hr(),
                               tableOutput('fit_results_all'),
                               value=2
                      ), 
                      
-                     tabPanel("Pearson correlation results",
-                              helpText("This table contains all the comparison between the different reporter lines, using Pearson correlation"),
-                              downloadButton('download_pears_all', 'Download full table'),
-                              tags$hr(),
-                              tableOutput('pears_results_all'),
-                              value=2
-                     ), 
-                     
-                     tabPanel("Spearman correlation results",
-                              helpText("This table contains all the comparison between the different reporter lines, using Spearman correlation"),
-                              downloadButton('download_spear_all', 'Download full table'),
-                              tags$hr(),
-                              tableOutput('spear_results_all'),
-                              value=2
-                     ),                      
+                     # tabPanel("Pearson correlation results",
+                     #          helpText("This table contains all the comparison between the different reporter lines, using Pearson correlation"),
+                     #          downloadButton('download_pears_all', 'Download full table'),
+                     #          tags$hr(),
+                     #          tableOutput('pears_results_all'),
+                     #          value=2
+                     # ), 
+                     # 
+                     # tabPanel("Spearman correlation results",
+                     #          helpText("This table contains all the comparison between the different reporter lines, using Spearman correlation"),
+                     #          downloadButton('download_spear_all', 'Download full table'),
+                     #          tags$hr(),
+                     #          tableOutput('spear_results_all'),
+                     #          value=2
+                     # ),                      
                      
                      tabPanel("AOV results",
                               helpText("This table contains all the comparison between the different reporter lines, for each cell type, using 2-way ANOVA analyses"),

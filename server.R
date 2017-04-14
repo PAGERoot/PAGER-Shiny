@@ -56,6 +56,7 @@ shinyServer(
                          rep.fit.gene = NULL,
                          rep.maov = NULL,
                          rep.fit = NULL,
+                         rep.fit.table = NULL,
                          rep.pearson = NULL,
                          rep.spearman = NULL,
                          p.list= NULL,
@@ -109,7 +110,7 @@ shinyServer(
           if(input$use_example){
             dat1 <- rs$dts$id[rs$dts$name == input$microarrays]
             dat2 <- rs$dts$id[rs$dts$name == input$reporters]
-            # gene <- fread(paste0('www/datasets/microarrays/', dat1,".csv"))
+            #gene <- fread('www/datasets/microarrays/all_genes_1.csv')[,-4]
             # temp <- read.csv(paste0('www/datasets/reporters/', dat2,".csv"))
             # 
             if(dat1 == "all_genes" & dat2 == "experession_full"){
@@ -126,24 +127,24 @@ shinyServer(
 
             if (is.null(inReporter)) return(NULL)
             if(!is.null(inGene)){
-              gene <- fread(inGene$datapath)   
+              gene <- fread(inGene$datapath)[,-4]   
             }
             temp <- read_rsml(inReporter$datapath)   
           
           
           
             # Average the data by line, root, cell type
-            if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=mean(value))
-            if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=median(value))
-            if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=min(value))
-            if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), summarise, value=max(value))
+            if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=mean(value))
+            if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=median(value))
+            if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=min(value))
+            if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=max(value))
             mean_data <- mean_data[!is.na(mean_data$value),]
             
             # Average the data by line, cell type
-            if(input$method == "Mean") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=mean(value))
-            if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=median(value))
-            if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=min(value))
-            if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), summarise, value=max(value))
+            if(input$method == "Mean") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=mean(value))
+            if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=median(value))
+            if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=min(value))
+            if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=max(value))
             mean_data_2 <- mean_data_2[!is.na(mean_data$value),]          
             
             # Reshape the data to have them in the proper form for the analysis
@@ -167,7 +168,7 @@ shinyServer(
             # Aggregate the data   
             rep.melt <- melt(reporter, id.vars =c("line", "root"))
             # gene.melt <- melt(gene, id.vars =c("Gene_ID"))
-            rep.agg.short <- ddply(rep.melt, .(line, variable), summarize, value=mean(value))
+            rep.agg.short <- ddply(rep.melt, .(line, variable), plyr::summarize, value=mean(value))
             
             # ----------------------------------------------------------------------------------
             # ----- PAIRWISE ANOVA COMPARISONS AND MANOVA ANALYSIS   ---------------------------
@@ -202,6 +203,8 @@ shinyServer(
             colnames(spearman.results) <- p.list 
             rownames(spearman.results) <- p.list
               
+            fit.table <- NULL
+            
             i <- 1
             k <- 1
             for(p in p.list){
@@ -236,10 +239,9 @@ shinyServer(
   
                   
                   temp2 <- melt(temp, id=c("line", "root"))
-                  temp2 <- ddply(temp2, .(line, variable), summarise, value=mean(value))
+                  temp2 <- ddply(temp2, .(line, variable), plyr::summarise, value=mean(value))
                   x <- temp2$value[temp2$line == p]; y <- temp2$value[temp2$line == p1] 
                   
-                  plot(x, y)
                   fit.results[j,i] <- summary(lm(y ~ x))$r.squared
                   fit.results[i,j] <- fit.results[j,i]
                   
@@ -249,6 +251,14 @@ shinyServer(
                   spearman.results[j,i] <- rcorr(x, y, type = "spearman")[[1]][1,2]
                   spearman.results[i,j] <- spearman.results[j,i]
                   
+                  
+                  fit.table <- rbind(fit.table, data.table(line1 = p, line2=p1, 
+                                                           r2 = fit.results[j,i], 
+                                                           r.pvalue = summary(lm(y ~ x))$coefficients[2, 4],
+                                                           pearson = pearson.results[j,i],
+                                                           pearson.pvalue = rcorr(x, y, type = "pearson")[[3]][1,2],
+                                                           spearman = spearman.results[j,i],
+                                                           spearman.pvalue = rcorr(x, y, type = "spearman")[[3]][1,2]))
                   # Reponse for each tissue
                   for(ti in tissues){
                     temp <- rep.melt[rep.melt$line == p | rep.melt$line == p1,]
@@ -294,21 +304,25 @@ shinyServer(
                 temp <- rep.melt[rep.melt$line == p,]
                 temp2 <- gene[gene$Gene_ID == ge,]
                 colnames(temp2) <- c("line", "variable", "value")
+                
+                
                 for(t in tissues){
                   tmp <- rbind(temp[temp$variable == t,c("line", "value")],temp2[temp2$variable == t,c("line", "value")])
                   fit <- aov(value ~ line, data=tmp)
                   aov.results.gene <- rbind(aov.results.gene, data.frame(line=p, gene=ge, tissue=t, pvalue = round(summary(fit)[[1]][1,5], 5)))
                 }
                 
-                temp <- ddply(temp, .(line, variable), summarise, value=mean(value))
-                temp2 <- ddply(temp2, .(Gene_ID, variable), summarise, value=mean(value))
+                temp <- ddply(temp, .(line, variable), plyr::summarise, value=mean(value))
+                temp2 <- ddply(temp2, .(line, variable), plyr::summarise, value=mean(value))
                 temp <- merge(temp, temp2, by.x="variable", by.y="variable")
                 fit.result <- summary(lm(temp$value.y ~ temp$value.x))$r.squared
                 pearson.result <- rcorr(temp$value.x, temp$value.y, type = "pearson")[[1]][1,2]
                 spearman.result <- rcorr(temp$value.x, temp$value.y, type = "spearman")[[1]][1,2]    
                 
-                fit.results.gene <- rbind(fit.results.gene, data.frame(line=p, gene=ge, r2=fit.result, pearson=pearson.result, spearman = spearman.result))
-                
+                fit.results.gene <- rbind(fit.results.gene, data.frame(line=p, gene=ge, 
+                                                                       r2=fit.result, r.pvalue = summary(lm(temp$value.y ~ temp$value.x))$coefficients[2, 4],
+                                                                       pearson=pearson.result, pearson.pvalue = rcorr(temp$value.x, temp$value.y, type = "pearson")[[3]][1,2], 
+                                                                       spearman = spearman.result, spearman.pvalue = rcorr(temp$value.x, temp$value.y, type = "spearman")[[3]][1,2]))                
               }
             }
             
@@ -349,6 +363,7 @@ shinyServer(
           rs$rep.fit.gene <- fit.results.gene
           rs$rep.maov <- maov.results
           rs$rep.fit <- fit.results
+          rs$rep.fit.table <- fit.table
           rs$rep.pearson <- pearson.results
           rs$rep.spearman <- spearman.results
           rs$p.list <- p.list
@@ -420,6 +435,22 @@ shinyServer(
     })
     
     observe({
+      ct_options <- list()
+      sel <- input$type_to_plot
+      if(length(sel) == 0) sel = cell_types
+      for(ct in cell_types) ct_options[[ct]] <- ct
+      updateSelectInput(session, "type_to_plot", choices = ct_options, selected=sel) 
+    })  
+    
+    observe({
+      ct_options <- list()
+      sel <- input$type_to_plot_2
+      if(length(sel) == 0) sel = cell_types
+      for(ct in cell_types) ct_options[[ct]] <- ct
+      updateSelectInput(session, "type_to_plot_2", choices = ct_options, selected=sel) 
+    })  
+    
+    observe({
       
       if(is.null(rs$reporter) || grepl("Load", input$ref_reps)){return()}
       
@@ -468,7 +499,8 @@ shinyServer(
       
       print(fitPlot(dat = temp2,
                            p = input$ref_reps, 
-                           p1 = input$to_plot
+                           p1 = input$to_plot,
+                          types = input$type_to_plot
       ))
     })
     
@@ -486,7 +518,8 @@ shinyServer(
       
       print(fitPlot_1(dat = temp, dat1 = temp2,
                     p = input$ref_reps, 
-                    p1 = match
+                    p1 = match,
+                    types = input$type_to_plot_2
       ))
     })    
     
@@ -498,7 +531,8 @@ shinyServer(
       if(is.null(rs$gene)){return()}
       print(barplot_comp_1(reps = input$ref_reps_2,
                            rep.agg = rs$rep.melt, 
-                           gene = rs$gene
+                           gene = rs$gene,
+                           types = input$type_to_plot_2
                             ))
     })  
  
@@ -507,7 +541,7 @@ shinyServer(
     
     output$barplot_comp <- renderPlot({
       if(is.null(rs$reporter)){return()}
-      print(barplot_comp(input$ref_reps, input$to_plot, rs$rep.melt))
+      print(barplot_comp(input$ref_reps, input$to_plot, rs$rep.melt, types = input$type_to_plot))
     })   
 
 ## PLOT THE ROOT #############################
@@ -529,7 +563,8 @@ shinyServer(
                               rep.agg.short = rs$rep.agg.short,
                               sig = rs$rep.maov[input$ref_reps, input$to_plot] < 0.05,
                               input$show_diff,
-                              range = input$display_range))
+                              range = c(0,1),#input$display_range,
+                              types = input$type_to_plot))
     }) 
     
 ## PLOT THE ROOT WITH THE GENE DATA  #############################
@@ -540,7 +575,8 @@ shinyServer(
                          root = rs$root, 
                          gene = rs$gene,
                          rep.agg.short = rs$rep.agg.short,
-                         range = input$display_range_1
+                         range = c(0,1),#input$display_range_1,
+                         types = input$type_to_plot_2
                          ))
     })     
  
@@ -634,12 +670,25 @@ shinyServer(
       return(HTML(text))
     })   
     
+    
+    
     output$line_comp_fit <- renderText({ 
       if(is.null(rs$rep.fit) || grepl("Load", input$to_plot)){return()}
+      
       sig <- rs$rep.fit[input$ref_reps, input$to_plot]
+      
+      # Update the r/squared value based on the selected tissue types
+      temp <- rs$reporter[rs$reporter$line == input$ref_reps | rs$reporter$line == input$to_plot,]
+      temp2 <- melt(temp, id=c("line", "root"))
+      temp2 <- ddply(temp2, .(line, variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp2 <- temp2[temp2$variable %in% input$type_to_plot,]
+      x <- temp2$avg[temp2$line == input$ref_reps]; 
+      y <- temp2$avg[temp2$line == input$to_plot] 
+      sig.new <- summary(lm(y~x))$r.squared
+      
       text <- ""
       if(!is.na(sig)){
-        text <- paste0("r-squared = ",round(sig, 4))
+        text <- paste0("r-squared: All = ",round(sig, 4), " || Selected = ",round(sig.new, 4))
       }
       return(HTML(text))
     })   
@@ -647,9 +696,19 @@ shinyServer(
     output$line_comp_pears <- renderText({ 
       if(is.null(rs$rep.pearson) || grepl("Load", input$to_plot)){return()}
       sig <- rs$rep.pearson[input$ref_reps, input$to_plot]
+      
+      # Update the r/squared value based on the selected tissue types
+      temp <- rs$reporter[rs$reporter$line == input$ref_reps | rs$reporter$line == input$to_plot,]
+      temp2 <- melt(temp, id=c("line", "root"))
+      temp2 <- ddply(temp2, .(line, variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp2 <- temp2[temp2$variable %in% input$type_to_plot,]
+      x <- temp2$avg[temp2$line == input$ref_reps]; 
+      y <- temp2$avg[temp2$line == input$to_plot] 
+      sig.new <- rcorr(x, y, type = "pearson")[[1]][1,2]
+      
       text <- ""
       if(!is.na(sig)){
-        text <- paste0("Pearson correlation = ",round(sig, 4))
+        text <- paste0("Pearson correlation: All = ",round(sig, 4), " || Selected = ",round(sig.new, 4))
       }
       return(HTML(text))
     })   
@@ -657,9 +716,19 @@ shinyServer(
     output$line_comp_spear <- renderText({ 
       if(is.null(rs$rep.spearman) || grepl("Load", input$to_plot)){return()}
       sig <- rs$rep.spearman[input$ref_reps, input$to_plot]
+      
+      # Update the r/squared value based on the selected tissue types
+      temp <- rs$reporter[rs$reporter$line == input$ref_reps | rs$reporter$line == input$to_plot,]
+      temp2 <- melt(temp, id=c("line", "root"))
+      temp2 <- ddply(temp2, .(line, variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp2 <- temp2[temp2$variable %in% input$type_to_plot,]
+      x <- temp2$avg[temp2$line == input$ref_reps]; 
+      y <- temp2$avg[temp2$line == input$to_plot] 
+      sig.new <- rcorr(x, y, type = "spearman")[[1]][1,2]
+      
       text <- ""
       if(!is.na(sig)){
-        text <- paste0("Spearman correlation value = ",round(sig, 4))
+        text <- paste0("Spearman correlation: All = ",round(sig, 4), " || Selected = ",round(sig.new, 4))
       }
       return(HTML(text))
     })       
@@ -700,8 +769,20 @@ shinyServer(
       if(is.null(rs$rep.fit.gene) || grepl("Load", input$to_plot)){return()}
       text <- ""
       sig <- rs$rep.fit.gene[rs$rep.fit.gene$line == input$ref_reps_2, c("r2")]
+      
+      temp2 <- rs$rep.melt[rs$rep.melt$line == input$ref_reps_2,]
+      match <- temp2$match[1]
+      temp <- rs$gene[rs$gene$Gene_ID == match,]
+      temp1 <- ddply(temp, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp2 <- ddply(temp2, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp <- merge(temp1, temp2, by="variable")
+      temp <- temp[temp$variable %in% input$type_to_plot_2,]
+      x <- temp$avg.x 
+      y <- temp$avg.y
+      sig.new <- summary(lm(y~x))$r.squared
+
       if(!is.na(sig)){
-        text <- paste0("R-squared value = ",round(sig, 4))
+        text <- paste0("R-squared: All = ",round(sig, 4), " || Selected = ",round(sig.new, 4))
       }
       return(HTML(text))
     }) 
@@ -710,8 +791,20 @@ shinyServer(
       if(is.null(rs$rep.fit.gene) || grepl("Load", input$to_plot)){return()}
       text <- ""
       sig <- rs$rep.fit.gene[rs$rep.fit.gene$line == input$ref_reps_2, c("pearson")]
+      
+      temp2 <- rs$rep.melt[rs$rep.melt$line == input$ref_reps_2,]
+      match <- temp2$match[1]
+      temp <- rs$gene[rs$gene$Gene_ID == match,]
+      temp1 <- ddply(temp, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp2 <- ddply(temp2, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp <- merge(temp1, temp2, by="variable")
+      temp <- temp[temp$variable %in% input$type_to_plot_2,]
+      x <- temp$avg.x 
+      y <- temp$avg.y
+      sig.new <- rcorr(x, y, type = "pearson")[[1]][1,2]
+      
       if(!is.na(sig)){
-        text <- paste0("Pearson correlation value = ",round(sig, 4))
+        text <- paste0("Pearson correlation: All = ",round(sig, 4), " || Selected = ",round(sig.new, 4))
       }
       return(HTML(text))
     }) 
@@ -720,8 +813,21 @@ shinyServer(
       if(is.null(rs$rep.fit.gene) || grepl("Load", input$to_plot)){return()}
       text <- ""
       sig <- rs$rep.fit.gene[rs$rep.fit.gene$line == input$ref_reps_2, c("spearman")]
+      
+      temp2 <- rs$rep.melt[rs$rep.melt$line == input$ref_reps_2,]
+      match <- temp2$match[1]
+      temp <- rs$gene[rs$gene$Gene_ID == match,]
+      temp1 <- ddply(temp, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp2 <- ddply(temp2, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
+      temp <- merge(temp1, temp2, by="variable")
+      temp <- temp[temp$variable %in% input$type_to_plot_2,]
+      x <- temp$avg.x 
+      y <- temp$avg.y
+      sig.new <- rcorr(x, y, type = "spearman")[[1]][1,2]
+      
+      
       if(!is.na(sig)){
-        text <- paste0("Spearman correlation value = ",round(sig, 4))
+        text <- paste0("Spearman correlation: All = ",round(sig, 4), " || Selected = ",round(sig.new, 4))
       }
       return(HTML(text))
     })     
@@ -826,19 +932,19 @@ shinyServer(
 
     output$fit_results_all <- renderTable({
       if(is.null(rs$rep.fit)){return()}
-      dat <- as.data.frame(rs$rep.fit)
-      dat$line_1 <- rownames(dat)
-      dat <- melt(dat, id.vars = c("line_1"))
-      colnames(dat) <- c("line_1", "line_2", "r2")
+      dat <- as.data.frame(rs$rep.fit.table)
+      # dat$line_1 <- rownames(dat)
+      # dat <- melt(dat, id.vars = c("line_1"))
+      # colnames(dat) <- c("line_1", "line_2", "r2")
       dat
     })    
     output$download_fit_all <- downloadHandler(
       filename = function() {"moav_results.csv"},
       content = function(file) {
-        dat <- as.data.frame(rs$rep.fit)
-        dat$line_1 <- rownames(dat)
-        dat <- melt(dat, id.vars = c("line_1"))
-        colnames(dat) <- c("line_1", "line_2", "r2")
+        dat <- as.data.frame(rs$rep.fit.table)
+        # dat$line_1 <- rownames(dat)
+        # dat <- melt(dat, id.vars = c("line_1"))
+        # colnames(dat) <- c("line_1", "line_2", "r2")
         write.csv(dat, file)
       }
     )

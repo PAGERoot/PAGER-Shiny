@@ -53,9 +53,11 @@ plotRootKey <- function(root){
 ##### PLOT THE ROOT REPORTER IMAGE
 
 plotRootReporters <- function(reps, to_plot, root, rep.aov, 
-                              rep.melt, rep.agg.short, sig, show, range){
+                              rep.melt, rep.agg.short, sig, 
+                              show, range, types){
   
   #Initialize the root map
+  root$value <- "NA"
   
   root1 <- root
   root2 <- root
@@ -66,17 +68,22 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
+  temp1 <- temp1[temp1$variable %in% types,]
   temp1$value <- range01(temp1$value)
   for(t in unique(as.character(temp1$variable))){
     root1$value[root1$tissue == t] <- temp1$value[temp1$variable == t]
   }
   
+  
+  
   # Get the value to plot for the comparison line
   temp2 <- rep.agg.short[rep.agg.short$line == to_plot ,]
+  temp2 <- temp2[temp2$variable %in% types,]
   temp2$value <- range01(temp2$value)
   for(t in unique(as.character(temp2$variable))){
     root2$value[root2$tissue == t] <- temp2$value[temp1$variable == t]
   } 
+  
   
   
   # Get the value to plot for the difference
@@ -107,8 +114,8 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
       axis.title.y = element_blank(),
       plot.title = element_text(hjust = 0.5, size=12, face="bold"),
       #legend.position = "none",
-      legend.text = element_text(size=14),
-      legend.title = element_text(size=15),
+      legend.text = element_text(size=12),
+      legend.title = element_text(size=12),
       panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
       plot.background = element_rect(fill = "transparent",colour = NA))  + 
     geom_rect(aes(ymin=-200, ymax=-300, xmin=min(root$x), xmax=max(root$x)+10), fill="white")
@@ -148,15 +155,16 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
 
 ##### PLOT THE ROOT GENE IMAGE
 
-plotRootGene <- function(reps, gene, root, rep.agg.short, range){
+plotRootGene <- function(reps, gene, root, rep.agg.short, range, types){
   
   #Initialize the root map
-
+  root$value <- NA
   root1 <- root
   root2 <- root
 
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
+  temp1 <- temp1[temp1$variable %in% types,]
   temp1$value <- range01(temp1$value)
   name <- temp1$line[1]
   match <- temp1$match[1]
@@ -167,6 +175,7 @@ plotRootGene <- function(reps, gene, root, rep.agg.short, range){
   # Get the value to plot for the comparison line
   temp <- gene[gene$Gene_ID == match,]
   temp <- ddply(temp, .(Gene_ID, variable), summarise, value=mean(value))#melt(temp, id.vars = c("Gene_ID"))  
+  temp <- temp[temp$variable %in% types,]
   temp$value <- range01(temp$value)
   for(t in unique(as.character(temp$variable))){
     root2$value[root2$tissue == t] <- temp$value[temp$variable == t]
@@ -185,8 +194,8 @@ plotRootGene <- function(reps, gene, root, rep.agg.short, range){
       axis.title.y = element_blank(),
       plot.title = element_text(hjust = 0.5, size=12, face="bold"),
       #legend.position = "none",
-      legend.text = element_text(size=14),
-      legend.title = element_text(size=15),
+      legend.text = element_text(size=12),
+      legend.title = element_text(size=12),
       panel.background = element_rect(fill = "transparent",colour = NA), # or theme_blank()
       plot.background = element_rect(fill = "transparent",colour = NA)) 
   
@@ -210,14 +219,16 @@ plotRootGene <- function(reps, gene, root, rep.agg.short, range){
 
 ###### BARPLOTS
 
-barplot_comp_1 <- function(reps, gene, rep.agg){
+barplot_comp_1 <- function(reps, gene, rep.agg, types){
   
   temp2 <-rep.agg[rep.agg$line == reps,]
   match <- temp2$match[1]
-  temp <- gene[gene$Gene_ID == match,-1]
+  temp <- gene[gene$Gene_ID == match,]
   temp2 <- temp2[,-c(2, 5)]
   colnames(temp) <- colnames(temp2)
   temp <- rbind(temp, temp2)
+  
+  temp <- temp[temp$variable %in% types,]
   
   temp$variable <- as.character(temp$variable)
   temp$variable[temp$variable == "columella"] <- "01 - Columella"
@@ -244,9 +255,12 @@ barplot_comp_1 <- function(reps, gene, rep.agg){
 }
 
 
-barplot_comp <- function(reps, to_plot, data){
+barplot_comp <- function(reps, to_plot, data, types){
 
   temp <- data[data$line == reps | data$line == to_plot,]
+  
+  temp <- temp[temp$variable %in% types,]
+  
   
   temp$variable <- as.character(temp$variable)
   temp$variable[temp$variable == "columella"] <- "01 - Columella"
@@ -273,9 +287,12 @@ barplot_comp <- function(reps, to_plot, data){
 }
 
 
-fitPlot <- function(dat, p, p1){
+fitPlot <- function(dat, p, p1, types){
   
   temp2 <- ddply(dat, .(line, variable), summarise, avg=mean(value), sd=sd(value))
+  temp2 <- temp2[temp2$variable %in% types,]
+  
+  
   x <- temp2$avg[temp2$line == p]; y <- temp2$avg[temp2$line == p1] 
   x_sd <- temp2$sd[temp2$line == p]; y_sd <- temp2$sd[temp2$line == p1] 
   dat <- data.frame(x, y, x_sd, y_sd, cell_type=temp2$variable[temp2$line == p])
@@ -301,11 +318,14 @@ fitPlot <- function(dat, p, p1){
   
 }
 
-fitPlot_1 <- function(dat, dat1, p, p1){
+fitPlot_1 <- function(dat, dat1, p, p1, types){
 
   temp1 <- ddply(dat, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
   temp2 <- ddply(dat1, .(variable), plyr::summarise, avg=mean(value), sd=sd(value))
   temp <- merge(temp1, temp2, by="variable")
+  
+  temp <- temp[temp$variable %in% types,]
+  
   x <- temp$avg.x 
   y <- temp$avg.y
   x_sd <- temp$sd.x
