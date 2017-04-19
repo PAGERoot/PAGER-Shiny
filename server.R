@@ -130,16 +130,12 @@ shinyServer(
             temp <- read_rsml(inReporter$datapath)   
           
             temp <- temp[temp$cell_type %in% input$type_to_analyse,]
-            # temp$root_id <- paste0(temp$line, temp$root)
+
+            # Transform the data
+            if(input$log2) temp$value <- log2(temp$value)
+            if(!input$use_absolute) temp$value <- ddply(temp, .(line, root), plyr::summarize, value=scale(value))$value
             
-            # ggplot(temp, aes(value, group=root)) + geom_density(alpha=0.1)
-            
-            if(input$use_absolute){
-              temp$value <- ddply(temp, .(line, root), plyr::summarize, value=log2(value))$value
-            }else{
-              temp$value <- ddply(temp, .(line, root), plyr::summarize, value=scale(log2(value)))$value
-            }
-            
+            # Aggregate the data
             if(input$method == "Mean") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=mean(value))
             if(input$method == "Median") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=median(value))
             if(input$method == "Min") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=min(value))
