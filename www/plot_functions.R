@@ -85,21 +85,21 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   } 
   
   
-  
-  # Get the value to plot for the difference
-  temp <- temp1
-  for(t in unique(as.character(temp2$variable))){
-    temp$value[temp$variable == t] <- temp2$value[temp2$variable == t] - temp1$value[temp1$variable == t]
+  if(show){
+    # Get the value to plot for the difference
+    temp <- temp1
+    for(t in unique(as.character(temp2$variable))){
+      temp$value[temp$variable == t] <- temp2$value[temp2$variable == t] - temp1$value[temp1$variable == t]
+    }
+    pvals <- rep.aov[(rep.aov$genotype_1 == to_plot & rep.aov$genotype_2 == reps) | 
+                                       (rep.aov$genotype_1 == reps & rep.aov$genotype_2 == to_plot),c("tissue", "pvalue")]
+    temp <- merge(temp, pvals, by.x="variable", by.y = "tissue")  
+    temp <- temp[as.numeric(temp$pvalue) < 0.05,]
+    
+    for(t in unique(as.character(temp$variable))){
+      root3$value[root3$tissue == t] <- temp$value[temp$variable == t]
+    }             
   }
-  pvals <- rep.aov[(rep.aov$genotype_1 == to_plot & rep.aov$genotype_2 == reps) | 
-                                     (rep.aov$genotype_1 == reps & rep.aov$genotype_2 == to_plot),c("tissue", "pvalue")]
-  temp <- merge(temp, pvals, by.x="variable", by.y = "tissue")  
-  temp <- temp[as.numeric(temp$pvalue) < 0.05,]
-  
-  for(t in unique(as.character(temp$variable))){
-    root3$value[root3$tissue == t] <- temp$value[temp$variable == t]
-  }             
-  
   rg <- range(root1$value, root2$value)
   # rg <- range(0,1)
   

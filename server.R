@@ -112,11 +112,21 @@ shinyServer(
             dat1 <- rs$dts$id[rs$dts$name == input$microarrays]
             dat2 <- rs$dts$id[rs$dts$name == input$reporters]
             if(dat1 == "all_genes" & dat2 == "experession_full"){
-              message("Loading dataset 1")
-              load("www/example/example1.RData")
+              if(input$log2bis){
+                message("Loading dataset 1 - log")
+                load("www/example/example_log1.RData")
+              }else{
+                message("Loading dataset 1")
+                load("www/example/example1.RData")
+              }
             }else if(dat1 == "all_genes" & dat2 == "experession_ji_young"){
-              message("Loading dataset 2")
-              load("www/example/example2.RData")
+              if(input$log2bis){
+                message("Loading dataset 2 - log")
+                load("www/example/example_log2.RData")
+              }else{
+                message("Loading dataset 2")
+                load("www/example/example2.RData")
+              }
             }            
             
           }else{
@@ -135,29 +145,16 @@ shinyServer(
             if(input$log2) temp$value <- log2(temp$value)
             if(!input$use_absolute) temp$value <- ddply(temp, .(line, root), plyr::summarize, value=scale(value))$value
             
-            # Aggregate the data
-            if(input$method == "Mean") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=mean(value))
-            if(input$method == "Median") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=median(value))
-            if(input$method == "Min") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=min(value))
-            if(input$method == "Max") temp <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=max(value))
-            
-            
-            
             # Average the data by line, root, cell type
-            # if(input$method == "Mean") 
-            mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=mean(value))
-            # if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=median(value))
-            # if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=min(value))
-            # if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=max(value))
+            if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=mean(value))
+            if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=median(value))
+            if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=min(value))
+            if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarize, value=max(value))
             mean_data <- mean_data[!is.na(mean_data$value),]
             mean_data <- mean_data[!is.infinite(mean_data$value),]
             
             # Average the data by line, cell type
-            # if(input$method == "Mean") 
-            mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=mean(value))
-            # if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=median(value))
-            # if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=min(value))
-            # if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=max(value))
+            mean_data_2 <- ddply(mean_data, .(line, cell_type), plyr::summarise, value=mean(value))
             mean_data_2 <- mean_data_2[!is.na(mean_data_2$value),]          
             mean_data_2 <- mean_data_2[!is.infinite(mean_data_2$value),]          
               
@@ -304,7 +301,7 @@ shinyServer(
             
             for(p in p.list){
               ge <- strsplit(p, "_")[[1]]
-              ge <- ge[grepl("AT[1-9]G", ge)] # find the corresping gene
+              ge <- ge[grepl("AT[1-9]", ge)] # find the corresping gene
               ge <- gsub("AT", "At", ge)
               ge <- gsub("G", "g", ge)
               # temp <- temp[temp$value  == min(temp$value),]

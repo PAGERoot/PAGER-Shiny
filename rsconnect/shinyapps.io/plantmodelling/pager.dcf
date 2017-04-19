@@ -3,9 +3,9 @@ title: PAGER
 account: plantmodelling
 server: shinyapps.io
 appId: 162677
-bundleId: 789021
+bundleId: 795070
 url: https://plantmodelling.shinyapps.io/pager/
-when: 1492150280.51418
+when: 1492614623.9038
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|LICENCE|README.md|www/mecha_data.RData|www/update_litterature_file.R|www/datasets/.DS_Store|www/datasets/microarrays/all_genes.csv|www/datasets/microarrays/GeneExpression.txt|www/datasets/reporters/experession_abs.rsml|www/datasets/reporters/experession_full.csv|www/datasets/reporters/experession_full.rsml|www/datasets/reporters/experession_ji_young.csv|www/datasets/reporters/experession_ji_young.rsml|www/datasets/reporters/experession_small.rsml
+ignoredFiles: .RData|LICENCE|README.md|www/mecha_data.RData|www/update_litterature_file.R|www/datasets/.DS_Store|www/datasets/microarrays/all_genes_1.csv|www/datasets/microarrays/all_genes.csv|www/datasets/microarrays/GeneExpression.txt|www/datasets/reporters/experession_abs.rsml|www/datasets/reporters/experession_full.csv|www/datasets/reporters/experession_full.rsml|www/datasets/reporters/experession_ji_young.csv|www/datasets/reporters/experession_ji_young.rsml|www/datasets/reporters/experession_small.rsml|www/example1/.DS_Store|www/example1/.Rapp.history|www/example1/example1.RData|www/example1/example2.RData|www/example1/root.csv|www/example1/root.RData
