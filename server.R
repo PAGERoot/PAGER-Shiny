@@ -102,7 +102,7 @@ shinyServer(
         incProgress(1/4, detail = "Loading the data")
 
          # gene <- fread("www/datasets/microarrays/all_genes.csv")
-         #temp <- read_rsml("www/datasets/reporters/experession_ji_young.rsml")
+         # temp <- read_rsml("www/datasets/reporters/experession_ji_young.rsml")
          # temp <- read_rsml("www/datasets/reporters/experession_full.rsml")
          
           # Load two datafiles, for the gene and the reporters
@@ -110,9 +110,6 @@ shinyServer(
           if(input$use_example){
             dat1 <- rs$dts$id[rs$dts$name == input$microarrays]
             dat2 <- rs$dts$id[rs$dts$name == input$reporters]
-            #gene <- fread('www/datasets/microarrays/all_genes_1.csv')[,-4]
-            # temp <- read.csv(paste0('www/datasets/reporters/', dat2,".csv"))
-            # 
             if(dat1 == "all_genes" & dat2 == "experession_full"){
               message("Loading dataset 1")
               load("www/example/example1.RData")
@@ -131,20 +128,22 @@ shinyServer(
             }
             temp <- read_rsml(inReporter$datapath)   
           
-          
+            temp <- temp[temp$cell_type %in% input$type_to_analyse,]
           
             # Average the data by line, root, cell type
-            if(input$method == "Mean") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=mean(value))
-            if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=median(value))
-            if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=min(value))
-            if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=max(value))
+            # if(input$method == "Mean") 
+            mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=mean(value))
+            # if(input$method == "Median") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=median(value))
+            # if(input$method == "Min") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=min(value))
+            # if(input$method == "Max") mean_data <- ddply(temp, .(line, root, cell_type), plyr::summarise, value=max(value))
             mean_data <- mean_data[!is.na(mean_data$value),]
             
             # Average the data by line, cell type
-            if(input$method == "Mean") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=mean(value))
-            if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=median(value))
-            if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=min(value))
-            if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=max(value))
+            # if(input$method == "Mean") 
+              mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=mean(value))
+            # if(input$method == "Median") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=median(value))
+            # if(input$method == "Min") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=min(value))
+            # if(input$method == "Max") mean_data_2 <- ddply(temp, .(line, cell_type), plyr::summarise, value=max(value))
             mean_data_2 <- mean_data_2[!is.na(mean_data$value),]          
             
             # Reshape the data to have them in the proper form for the analysis
@@ -438,6 +437,7 @@ shinyServer(
       ct_options <- list()
       sel <- input$type_to_plot
       if(length(sel) == 0) sel = cell_types
+      sel <- sel[sel %in% input$type_to_analyse]
       for(ct in cell_types) ct_options[[ct]] <- ct
       updateSelectInput(session, "type_to_plot", choices = ct_options, selected=sel) 
     })  
