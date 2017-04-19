@@ -54,7 +54,7 @@ plotRootKey <- function(root){
 
 plotRootReporters <- function(reps, to_plot, root, rep.aov, 
                               rep.melt, rep.agg.short, sig, 
-                              show, range, types){
+                              show, range, types, abs){
   
   #Initialize the root map
   root$value <- "NA"
@@ -69,7 +69,7 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
   temp1 <- temp1[temp1$variable %in% types,]
-  temp1$value <- range01(temp1$value)
+  if(!abs) temp1$value <- range01(temp1$value)
   for(t in unique(as.character(temp1$variable))){
     root1$value[root1$tissue == t] <- temp1$value[temp1$variable == t]
   }
@@ -79,7 +79,7 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
   # Get the value to plot for the comparison line
   temp2 <- rep.agg.short[rep.agg.short$line == to_plot ,]
   temp2 <- temp2[temp2$variable %in% types,]
-  temp2$value <- range01(temp2$value)
+  if(!abs) temp2$value <- range01(temp2$value)
   for(t in unique(as.character(temp2$variable))){
     root2$value[root2$tissue == t] <- temp2$value[temp1$variable == t]
   } 
@@ -100,7 +100,7 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
     root3$value[root3$tissue == t] <- temp$value[temp$variable == t]
   }             
   
-  rg <- range
+  rg <- range(root1$value, root2$value)
   # rg <- range(0,1)
   
   pl <- ggplot() + coord_fixed() +
@@ -155,7 +155,7 @@ plotRootReporters <- function(reps, to_plot, root, rep.aov,
 
 ##### PLOT THE ROOT GENE IMAGE
 
-plotRootGene <- function(reps, gene, root, rep.agg.short, range, types){
+plotRootGene <- function(reps, gene, root, rep.agg.short, range, types, abs){
   
   #Initialize the root map
   root$value <- NA
@@ -165,7 +165,7 @@ plotRootGene <- function(reps, gene, root, rep.agg.short, range, types){
   # Get the value to plot for the reference line
   temp1 <- rep.agg.short[rep.agg.short$line == reps,]
   temp1 <- temp1[temp1$variable %in% types,]
-  temp1$value <- range01(temp1$value)
+  if(!abs) temp1$value <- range01(temp1$value)
   name <- temp1$line[1]
   match <- temp1$match[1]
   for(t in unique(as.character(temp1$variable))){
@@ -176,12 +176,12 @@ plotRootGene <- function(reps, gene, root, rep.agg.short, range, types){
   temp <- gene[gene$Gene_ID == match,]
   temp <- ddply(temp, .(Gene_ID, variable), summarise, value=mean(value))#melt(temp, id.vars = c("Gene_ID"))  
   temp <- temp[temp$variable %in% types,]
-  temp$value <- range01(temp$value)
+  if(!abs) temp$value <- range01(temp$value)
   for(t in unique(as.character(temp$variable))){
     root2$value[root2$tissue == t] <- temp$value[temp$variable == t]
   }   
 
-  rg <- range
+  rg <- range(root1$value, root2$value)
   
   pl <- ggplot() + coord_fixed() +
     theme_classic() +
@@ -219,7 +219,7 @@ plotRootGene <- function(reps, gene, root, rep.agg.short, range, types){
 
 ###### BARPLOTS
 
-barplot_comp_1 <- function(reps, gene, rep.agg, types){
+barplot_comp_1 <- function(reps, gene, rep.agg, types, abs){
   
   temp2 <-rep.agg[rep.agg$line == reps,]
   match <- temp2$match[1]

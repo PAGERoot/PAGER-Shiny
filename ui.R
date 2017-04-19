@@ -37,17 +37,19 @@ shinyUI(fluidPage(
     column(3, 
       h3("1. Load your data"),
       wellPanel(
-      tabsetPanel(
-        tabPanel("Your data",
-             fileInput('rep_file', 'Choose reporter expression data File', accept=c('text', '.rsml')),
-             fileInput('gene_file', 'Choose gene expression data File', accept=c('text/comma-separated-values', '.csv')),
-             h3("2. Choose the options"),
-             checkboxInput('use_absolute', "These are absolute values", value = FALSE, width = NULL),
-             selectInput("type_to_analyse", label="Cell types to use in analysis", choices = c("Load datafile"), selected = NULL, multiple = TRUE)
-             # selectInput("method", label = "Method used for the analysis", choices = c("Mean", "Median", "Min", "Max")), # updated with the datafile
-             # helpText("Define which method to use to aggregate the data at the line x root x cell type level")
-        ),
-        tabPanel("Sample data",
+      # tabsetPanel(
+      #   tabPanel("Your data",
+      #        fileInput('rep_file', 'Choose reporter expression data File', accept=c('text', '.rsml')),
+      #        fileInput('gene_file', 'Choose gene expression data File', accept=c('text/comma-separated-values', '.csv')),
+      #        h3("2. Choose the options"),
+      #        checkboxInput('use_absolute', "Use absolute values (no scaling)", value = FALSE, width = NULL),
+      #        selectInput("type_to_analyse", label="Cell types to use in analysis", choices = c("Load datafile"), selected = NULL, multiple = TRUE),
+      #        selectInput("method", label = "How the average the data", choices = c("Mean", "Median", "Min", "Max"))
+      #        
+      #        # selectInput("method", label = "Method used for the analysis", choices = c("Mean", "Median", "Min", "Max")), # updated with the datafile
+      #        # helpText("Define which method to use to aggregate the data at the line x root x cell type level")
+      #   ),
+      #   tabPanel("Sample data",
               checkboxInput('use_example', "Use example data", value = F, width = NULL),
               selectInput("reporters", label = "Select reporter dataset", choices = c("Load datafile")), # updated with the datafile
               htmlOutput("littTitle"),
@@ -60,8 +62,8 @@ shinyUI(fluidPage(
               htmlOutput("littAuth1"),
               htmlOutput("littRef1"),
               htmlOutput("doi1")#,
-          )# updated with the datafile
-        )
+          # )# updated with the datafile
+        # )
       ),
       tags$hr(),
       actionButton(inputId = "load_data", label=" Launch PAGE-Root", icon("paper-plane"), 

@@ -72,26 +72,43 @@ range01 <- function(x){
 
 # Function to read the RSML file
 read_rsml <- function(path){
+  
+  # path <- "~/Downloads/reporter.rsml"
+  
+  # t1 <- proc.time()
   x <- read_xml(path)
   scene <- xml_children(x)[2]
-  mydata <- data.frame("line"=factor(), 
-                       "root"=numeric(), 
-                       "cell_type"=factor(), 
-                       "value"=numeric())
+  mydata <- list()#data.frame("line"=factor(), 
+                       # "root"=numeric(), 
+                       # "cell_type"=factor(), 
+                       # "value"=numeric())
+                       # 
+  # all <- xml_find_all(scene, ".//root")
+  # names <- xml_attr(xml_parent(all), "label")
+  # test <- NULL
+  
+  inc <- 0
   for(i in c(1:length(xml_children(scene)))){
     plant <- xml_child(scene, i)
+    # message(paste0("importing ",xml_attr(plant, "label")))
     for(j in c(1:length(xml_children(plant)))){
       root <- xml_child(plant, j)
       annots <- xml_find_all(root, ".//annotation")
       for(k in c(1:length(annots))){
         n <- length(xml_find_all(annots[k], ".//value"))
-        mydata <- rbind(mydata, data.frame(line = rep(xml_attr(plant, "label"), n),
+        # mydata <- rbind(mydata,
+        mydata[[length(mydata)+1]] <- data.frame(line = rep(xml_attr(plant, "label"), n),
                                            root = as.numeric(rep(xml_attr(root, "label"), n)),
                                            cell_type = rep(xml_attr(annots[k], "name"), n),
-                                           value = as.numeric(xml_text(xml_find_all(annots[k], ".//value")))))
+                                           value = as.numeric(xml_text(xml_find_all(annots[k], ".//value"))))#)
+        # tot <- tot+n
+        # inc <- inc+1
+        # test <- rbind(test, data.table(inc=inc, n=n, time=(proc.time()-t1)[[3]]))
       }
     }
   }
+  mydata <- ldply(mydata, data.frame)
+  # print(proc.time() - t1)
   return(mydata)
 }
 
