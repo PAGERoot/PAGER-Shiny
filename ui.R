@@ -51,7 +51,7 @@ shinyUI(fluidPage(
              # helpText("Define which method to use to aggregate the data at the line x root x cell type level")
         ),
         tabPanel("Sample data",
-              checkboxInput('use_example', "Use example data", value = T, width = NULL),
+              checkboxInput('use_example', "Use example data", value = F, width = NULL),
               selectInput("reporters", label = "Select reporter dataset", choices = c("Load datafile")), # updated with the datafile
               htmlOutput("littTitle"),
               htmlOutput("littAuth"),
