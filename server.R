@@ -530,7 +530,7 @@ shinyServer(
       # temp <- rbind(temp, temp2)
       
       print(fitPlot_1(dat = temp, dat1 = temp2,
-                    p = input$ref_reps, 
+                    p = input$ref_reps_2, 
                     p1 = match,
                     types = input$type_to_plot_2
       ))
